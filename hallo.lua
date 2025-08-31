@@ -156,47 +156,55 @@ local function switchTab(tabName)
                 player.Character:MoveTo(Vector3.new(0,10,0))
             end
         end)
-    elseif tabName == "Bring Stuff" then
-        -- Page Frame
-        local pageFrame = Instance.new("Frame", contentFrame)
-        pageFrame.Size = UDim2.new(1,0,1,0)
-        pageFrame.BackgroundTransparency = 1
-        
-        local function showPage()
-            for _, child in pairs(pageFrame:GetChildren()) do
-                child:Destroy()
-            end
-
-            -- Logs Button
-            local logsButton = Instance.new("TextButton", pageFrame)
-            logsButton.Size = UDim2.new(0,200,0,50)
-            logsButton.Position = UDim2.new(0,20,0,20)
-            logsButton.Text = "Bring Logs"
-            logsButton.BackgroundColor3 = Color3.fromRGB(70,65,130)
-            logsButton.TextColor3 = Color3.fromRGB(255,255,255)
-            logsButton.MouseButton1Click:Connect(function()
-                for _, obj in pairs(workspace:GetDescendants()) do
-                    if obj.Name:lower():find("log") and obj:IsA("BasePart") then
-                        obj.CFrame = player.Character.HumanoidRootPart.CFrame + Vector3.new(0,5,0)
-                    end
-                end
-            end)
+  elseif tabName == "Bring Stuff" then
+    -- Page Frame
+    local pageFrame = Instance.new("Frame", contentFrame)
+    pageFrame.Size = UDim2.new(1,0,1,0)
+    pageFrame.BackgroundTransparency = 1
+    
+    local function bringItems(keyword)
+        for _, obj in pairs(workspace:GetDescendants()) do
+            local lowerName = obj.Name:lower()
             
-            -- Scrap Button
-            local scrapButton = Instance.new("TextButton", pageFrame)
-            scrapButton.Size = UDim2.new(0,200,0,50)
-            scrapButton.Position = UDim2.new(0,20,0,80)
-            scrapButton.Text = "Bring Scrap"
-            scrapButton.BackgroundColor3 = Color3.fromRGB(70,65,130)
-            scrapButton.TextColor3 = Color3.fromRGB(255,255,255)
-            scrapButton.MouseButton1Click:Connect(function()
-                for _, obj in pairs(workspace:GetDescendants()) do
-                    if obj.Name:lower():find("scrap") and obj:IsA("BasePart") then
-                        obj.CFrame = player.Character.HumanoidRootPart.CFrame + Vector3.new(0,5,0)
-                    end
+            -- ✅ Nur echte Logs & Scrap, nicht Campfire oder andere Parts
+            if (keyword == "log" and lowerName:find("log") and not lowerName:find("fire")) 
+            or (keyword == "scrap" and lowerName:find("scrap")) then
+                
+                -- Wenn es ein Model ist → PivotTo benutzen
+                if obj:IsA("Model") and obj:FindFirstChildWhichIsA("BasePart") then
+                    obj:PivotTo(player.Character.HumanoidRootPart.CFrame + Vector3.new(0,5,0))
+                -- Wenn es nur ein einzelner Part ist
+                elseif obj:IsA("BasePart") then
+                    obj.CFrame = player.Character.HumanoidRootPart.CFrame + Vector3.new(0,5,0)
+                    obj.Anchored = false -- sicherstellen, dass er bewegbar bleibt
                 end
-            end)
+            end
         end
+    end
+
+    -- Logs Button
+    local logsButton = Instance.new("TextButton", pageFrame)
+    logsButton.Size = UDim2.new(0,200,0,50)
+    logsButton.Position = UDim2.new(0,20,0,20)
+    logsButton.Text = "Bring Logs"
+    logsButton.BackgroundColor3 = Color3.fromRGB(70,65,130)
+    logsButton.TextColor3 = Color3.fromRGB(255,255,255)
+    logsButton.MouseButton1Click:Connect(function()
+        bringItems("log")
+    end)
+    
+    -- Scrap Button
+    local scrapButton = Instance.new("TextButton", pageFrame)
+    scrapButton.Size = UDim2.new(0,200,0,50)
+    scrapButton.Position = UDim2.new(0,20,0,80)
+    scrapButton.Text = "Bring Scrap"
+    scrapButton.BackgroundColor3 = Color3.fromRGB(70,65,130)
+    scrapButton.TextColor3 = Color3.fromRGB(255,255,255)
+    scrapButton.MouseButton1Click:Connect(function()
+        bringItems("scrap")
+    end)
+end
+
         
         showPage()
         
