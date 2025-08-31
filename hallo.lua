@@ -171,44 +171,66 @@ for i, tabName in ipairs(tabs) do
         end
 
         -- BRING STUFF TAB
-        if tabName == "Bring Stuff" then
-            local function bringItems(keyword)
-                for _, obj in pairs(workspace:GetDescendants()) do
-                    local lowerName = obj.Name:lower()
-                    
-                    if (keyword == "log" and lowerName:find("log") and not lowerName:find("fire")) 
-                    or (keyword == "scrap" and lowerName:find("scrap")) then
-                        
-                        if obj:IsA("Model") and obj:FindFirstChildWhichIsA("BasePart") then
-                            obj:PivotTo(player.Character.HumanoidRootPart.CFrame + Vector3.new(5,3,0))
-                        elseif obj:IsA("BasePart") then
-                            obj.CFrame = player.Character.HumanoidRootPart.CFrame + Vector3.new(5,3,0)
-                            obj.Anchored = false
-                        end
-                    end
+      -- BRING STUFF TAB
+if tabName == "Bring Stuff" then
+    local function bringItems(keyword)
+        for _, obj in pairs(workspace:GetDescendants()) do
+            local lowerName = obj.Name:lower()
+            
+            if (keyword == "log" and lowerName:find("log") and not lowerName:find("fire")) 
+            or (keyword == "scrap" and lowerName:find("scrap")) then
+                
+                if obj:IsA("Model") and obj:FindFirstChildWhichIsA("BasePart") then
+                    obj:PivotTo(player.Character.HumanoidRootPart.CFrame + Vector3.new(5,3,0))
+                elseif obj:IsA("BasePart") then
+                    obj.CFrame = player.Character.HumanoidRootPart.CFrame + Vector3.new(5,3,0)
+                    obj.Anchored = false
                 end
             end
-
-            local logsButton = Instance.new("TextButton", contentFrame)
-            logsButton.Size = UDim2.new(0,200,0,50)
-            logsButton.Position = UDim2.new(0,20,0,20)
-            logsButton.Text = "Bring Logs"
-            logsButton.BackgroundColor3 = Color3.fromRGB(70,65,130)
-            logsButton.TextColor3 = Color3.fromRGB(255,255,255)
-            logsButton.MouseButton1Click:Connect(function()
-                bringItems("log")
-            end)
-
-            local scrapButton = Instance.new("TextButton", contentFrame)
-            scrapButton.Size = UDim2.new(0,200,0,50)
-            scrapButton.Position = UDim2.new(0,20,0,80)
-            scrapButton.Text = "Bring Scrap"
-            scrapButton.BackgroundColor3 = Color3.fromRGB(70,65,130)
-            scrapButton.TextColor3 = Color3.fromRGB(255,255,255)
-            scrapButton.MouseButton1Click:Connect(function()
-                bringItems("scrap")
-            end)
         end
+    end
+
+    -- Logs Button
+    local logsButton = Instance.new("TextButton", contentFrame)
+    logsButton.Size = UDim2.new(0,200,0,50)
+    logsButton.Position = UDim2.new(0,20,0,20)
+    logsButton.Text = "Bring Logs"
+    logsButton.BackgroundColor3 = Color3.fromRGB(70,65,130)
+    logsButton.TextColor3 = Color3.fromRGB(255,255,255)
+    logsButton.MouseButton1Click:Connect(function()
+        bringItems("log")
+    end)
+
+    -- Scrap Button
+    local scrapButton = Instance.new("TextButton", contentFrame)
+    scrapButton.Size = UDim2.new(0,200,0,50)
+    scrapButton.Position = UDim2.new(0,20,0,80)
+    scrapButton.Text = "Bring Scrap"
+    scrapButton.BackgroundColor3 = Color3.fromRGB(70,65,130)
+    scrapButton.TextColor3 = Color3.fromRGB(255,255,255)
+    scrapButton.MouseButton1Click:Connect(function()
+        bringItems("scrap")
+    end)
+
+    -- Give All Items Button
+    local items = {"RayGun","AdminAx","StrongAx","GiantSack","StrongFlashlight"} -- Items, die existieren
+    local giveAllButton = Instance.new("TextButton", contentFrame)
+    giveAllButton.Size = UDim2.new(0,200,0,50)
+    giveAllButton.Position = UDim2.new(0,20,0,140)
+    giveAllButton.Text = "Give All Items"
+    giveAllButton.BackgroundColor3 = Color3.fromRGB(90,70,150)
+    giveAllButton.TextColor3 = Color3.fromRGB(255,255,255)
+    giveAllButton.MouseButton1Click:Connect(function()
+        local storage = game:GetService("ReplicatedStorage") -- oder ServerStorage, je nach Spiel
+        for _, itemName in ipairs(items) do
+            local tool = storage:FindFirstChild(itemName)
+            if tool then
+                local clone = tool:Clone()
+                clone.Parent = player.Backpack
+            end
+        end
+    end)
+end
 
         -- LOCAL TAB
         if tabName == "Local" then
