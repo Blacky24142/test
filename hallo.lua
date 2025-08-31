@@ -1,7 +1,9 @@
--- Roblox GUI ähnlich Discord Style (Voidware Style)
+-- Roblox GUI ähnlich Discord Style (Voidware Style) mit Kategorien und Funktionen
 
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
 
 -- ScreenGui
 local screenGui = Instance.new("ScreenGui")
@@ -108,25 +110,151 @@ contentFrame.Position = UDim2.new(0, 180, 0, 45)
 contentFrame.BackgroundColor3 = Color3.fromRGB(55, 50, 100)
 contentFrame.Parent = mainFrame
 
--- Beispiel Card
-local card = Instance.new("Frame")
-card.Size = UDim2.new(0, 350, 0, 100)
-card.Position = UDim2.new(0, 30, 0, 30)
-card.BackgroundColor3 = Color3.fromRGB(65, 60, 120)
-card.Parent = contentFrame
+-- Tabs (Main, Help, Teleport, Bring Stuff, Local)
+local categories = {"Main", "Help", "Teleport", "Bring Stuff", "Local"}
+local buttons = {}
+local activeTab = nil
 
-local cardCorner = Instance.new("UICorner")
-cardCorner.CornerRadius = UDim.new(0, 12)
-cardCorner.Parent = card
+local function clearContent()
+    for _, child in pairs(contentFrame:GetChildren()) do
+        if child:IsA("Frame") or child:IsA("TextLabel") or child:IsA("TextButton") or child:IsA("TextBox") then
+            child:Destroy()
+        end
+    end
+end
 
-local cardText = Instance.new("TextLabel")
-cardText.Size = UDim2.new(1, -20, 1, -20)
-cardText.Position = UDim2.new(0, 10, 0, 10)
-cardText.Text = "Voidware [Official]\nMember Count: 40564\nOnline Count: 5904"
-cardText.TextColor3 = Color3.fromRGB(255, 255, 255)
-cardText.Font = Enum.Font.GothamBold
-cardText.TextSize = 18
-cardText.TextXAlignment = Enum.TextXAlignment.Left
-cardText.TextYAlignment = Enum.TextYAlignment.Top
-cardText.BackgroundTransparency = 1
-cardText.Parent = card
+local function switchTab(tabName)
+    clearContent()
+    activeTab = tabName
+    
+    if tabName == "Main" then
+        local text = Instance.new("TextLabel", contentFrame)
+        text.Size = UDim2.new(1, 0, 0, 50)
+        text.Text = "Willkommen im Voidware Dashboard"
+        text.TextColor3 = Color3.fromRGB(255,255,255)
+        text.Font = Enum.Font.GothamBold
+        text.TextScaled = true
+        text.BackgroundTransparency = 1
+    elseif tabName == "Help" then
+        local text = Instance.new("TextLabel", contentFrame)
+        text.Size = UDim2.new(1, 0, 0, 200)
+        text.Text = "Help Menü\n- Nutze Teleport um dich zu bewegen\n- Bring Stuff bringt Scrap & Logs\n- Local: Speed & Infinite Jump"
+        text.TextColor3 = Color3.fromRGB(255,255,255)
+        text.Font = Enum.Font.Gotham
+        text.TextSize = 18
+        text.BackgroundTransparency = 1
+        text.TextWrapped = true
+    elseif tabName == "Teleport" then
+        local tpButton = Instance.new("TextButton", contentFrame)
+        tpButton.Size = UDim2.new(0,200,0,50)
+        tpButton.Position = UDim2.new(0,20,0,20)
+        tpButton.Text = "Teleport zu Spawn"
+        tpButton.BackgroundColor3 = Color3.fromRGB(70,65,130)
+        tpButton.TextColor3 = Color3.fromRGB(255,255,255)
+        tpButton.MouseButton1Click:Connect(function()
+            if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                player.Character:MoveTo(Vector3.new(0,10,0))
+            end
+        end)
+    elseif tabName == "Bring Stuff" then
+        -- Page Frame
+        local pageFrame = Instance.new("Frame", contentFrame)
+        pageFrame.Size = UDim2.new(1,0,1,0)
+        pageFrame.BackgroundTransparency = 1
+        
+        local function showPage()
+            for _, child in pairs(pageFrame:GetChildren()) do
+                child:Destroy()
+            end
+
+            -- Logs Button
+            local logsButton = Instance.new("TextButton", pageFrame)
+            logsButton.Size = UDim2.new(0,200,0,50)
+            logsButton.Position = UDim2.new(0,20,0,20)
+            logsButton.Text = "Bring Logs"
+            logsButton.BackgroundColor3 = Color3.fromRGB(70,65,130)
+            logsButton.TextColor3 = Color3.fromRGB(255,255,255)
+            logsButton.MouseButton1Click:Connect(function()
+                for _, obj in pairs(workspace:GetDescendants()) do
+                    if obj.Name:lower():find("log") and obj:IsA("BasePart") then
+                        obj.CFrame = player.Character.HumanoidRootPart.CFrame + Vector3.new(0,5,0)
+                    end
+                end
+            end)
+            
+            -- Scrap Button
+            local scrapButton = Instance.new("TextButton", pageFrame)
+            scrapButton.Size = UDim2.new(0,200,0,50)
+            scrapButton.Position = UDim2.new(0,20,0,80)
+            scrapButton.Text = "Bring Scrap"
+            scrapButton.BackgroundColor3 = Color3.fromRGB(70,65,130)
+            scrapButton.TextColor3 = Color3.fromRGB(255,255,255)
+            scrapButton.MouseButton1Click:Connect(function()
+                for _, obj in pairs(workspace:GetDescendants()) do
+                    if obj.Name:lower():find("scrap") and obj:IsA("BasePart") then
+                        obj.CFrame = player.Character.HumanoidRootPart.CFrame + Vector3.new(0,5,0)
+                    end
+                end
+            end)
+        end
+        
+        showPage()
+        
+    elseif tabName == "Local" then
+        -- Infinite Jump
+        local infJumpToggle = false
+        local infJumpButton = Instance.new("TextButton", contentFrame)
+        infJumpButton.Size = UDim2.new(0,200,0,50)
+        infJumpButton.Position = UDim2.new(0,20,0,20)
+        infJumpButton.Text = "Infinite Jump: OFF"
+        infJumpButton.BackgroundColor3 = Color3.fromRGB(70,65,130)
+        infJumpButton.TextColor3 = Color3.fromRGB(255,255,255)
+        infJumpButton.MouseButton1Click:Connect(function()
+            infJumpToggle = not infJumpToggle
+            infJumpButton.Text = "Infinite Jump: " .. (infJumpToggle and "ON" or "OFF")
+        end)
+        UserInputService.JumpRequest:Connect(function()
+            if infJumpToggle and player.Character and player.Character:FindFirstChildOfClass("Humanoid") then
+                player.Character:FindFirstChildOfClass("Humanoid"):ChangeState("Jumping")
+            end
+        end)
+        
+        -- WalkSpeed
+        local speedBox = Instance.new("TextBox", contentFrame)
+        speedBox.Size = UDim2.new(0,200,0,50)
+        speedBox.Position = UDim2.new(0,20,0,80)
+        speedBox.PlaceholderText = "WalkSpeed eingeben"
+        speedBox.BackgroundColor3 = Color3.fromRGB(70,65,130)
+        speedBox.TextColor3 = Color3.fromRGB(255,255,255)
+        speedBox.Text = ""
+        
+        speedBox.FocusLost:Connect(function(enterPressed)
+            if enterPressed then
+                local val = tonumber(speedBox.Text)
+                if val and player.Character and player.Character:FindFirstChildOfClass("Humanoid") then
+                    player.Character:FindFirstChildOfClass("Humanoid").WalkSpeed = val
+                end
+            end
+        end)
+    end
+end
+
+-- Sidebar Buttons
+for i, cat in ipairs(categories) do
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(1, 0, 0, 40)
+    btn.Position = UDim2.new(0, 0, 0, (i-1)*45)
+    btn.Text = cat
+    btn.BackgroundColor3 = Color3.fromRGB(50, 45, 90)
+    btn.TextColor3 = Color3.fromRGB(255,255,255)
+    btn.Font = Enum.Font.GothamBold
+    btn.TextSize = 16
+    btn.Parent = sidebar
+    btn.MouseButton1Click:Connect(function()
+        switchTab(cat)
+    end)
+    buttons[cat] = btn
+end
+
+-- Default Tab
+switchTab("Main")
