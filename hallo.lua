@@ -1,4 +1,4 @@
--- Roblox GUI ähnlich Discord Style (Voidware Style)
+-- Roblox GUI ähnlich Discord Style (Voidware Style) verbessert
 
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
@@ -8,7 +8,7 @@ local player = Players.LocalPlayer
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "ModernDashboard"
 screenGui.ResetOnSpawn = false
-screenGui.Parent = game:GetService("CoreGui") -- direkt in CoreGui
+screenGui.Parent = game:GetService("CoreGui") -- CoreGui für Exploit Scripts
 
 -- Main Frame
 local mainFrame = Instance.new("Frame")
@@ -108,7 +108,6 @@ contentFrame.Position = UDim2.new(0, 180, 0, 45)
 contentFrame.BackgroundColor3 = Color3.fromRGB(55, 50, 100)
 contentFrame.Parent = mainFrame
 
----------------------------------------------------------
 -- Tabs
 local tabs = {"Main", "Help", "Teleport", "Bring Stuff", "Local"}
 
@@ -155,7 +154,7 @@ for i, tabName in ipairs(tabs) do
             helpLabel.TextScaled = true
         end
 
-        -- TELEPORT TAB (Beispiel: Spawn)
+        -- TELEPORT TAB
         if tabName == "Teleport" then
             local tpButton = Instance.new("TextButton", contentFrame)
             tpButton.Size = UDim2.new(0,200,0,50)
@@ -171,70 +170,63 @@ for i, tabName in ipairs(tabs) do
         end
 
         -- BRING STUFF TAB
-      -- BRING STUFF TAB
-if tabName == "Bring Stuff" then
-    local function bringItems(keyword)
-        for _, obj in pairs(workspace:GetDescendants()) do
-            local lowerName = obj.Name:lower()
-            
-            if (keyword == "log" and lowerName:find("log") and not lowerName:find("fire")) 
-            or (keyword == "scrap" and lowerName:find("scrap")) then
-                
-                if obj:IsA("Model") and obj:FindFirstChildWhichIsA("BasePart") then
-                    obj:PivotTo(player.Character.HumanoidRootPart.CFrame + Vector3.new(5,3,0))
-                elseif obj:IsA("BasePart") then
-                    obj.CFrame = player.Character.HumanoidRootPart.CFrame + Vector3.new(5,3,0)
-                    obj.Anchored = false
+        if tabName == "Bring Stuff" then
+            local spawnY = 3
+            -- Kleine Logs/Schrott
+            local function bringSmall(keyword)
+                local root = player.Character.HumanoidRootPart
+                for _, obj in pairs(workspace:GetDescendants()) do
+                    local name = obj.Name:lower()
+                    if (keyword == "log" and name:find("log")) 
+                    or (keyword == "scrap" and name:find("scrap")) then
+                        if obj:IsA("BasePart") and obj.Size.Magnitude < 8 then
+                            obj.CFrame = root.CFrame + Vector3.new(5, spawnY, 0)
+                            obj.Anchored = false
+                        elseif obj:IsA("Model") and obj.PrimaryPart and obj:GetExtentsSize().Magnitude < 8 then
+                            obj:PivotTo(root.CFrame + Vector3.new(5, spawnY, 0))
+                        end
+                    end
                 end
             end
-        end
-    end
 
-    -- Logs Button
-    local logsButton = Instance.new("TextButton", contentFrame)
-    logsButton.Size = UDim2.new(0,200,0,50)
-    logsButton.Position = UDim2.new(0,20,0,20)
-    logsButton.Text = "Bring Logs"
-    logsButton.BackgroundColor3 = Color3.fromRGB(70,65,130)
-    logsButton.TextColor3 = Color3.fromRGB(255,255,255)
-    logsButton.MouseButton1Click:Connect(function()
-        bringItems("log")
-    end)
+            local logsBtn = Instance.new("TextButton", contentFrame)
+            logsBtn.Size = UDim2.new(0,200,0,50)
+            logsBtn.Position = UDim2.new(0,20,0,20)
+            logsBtn.Text = "Bring Logs"
+            logsBtn.BackgroundColor3 = Color3.fromRGB(70,65,130)
+            logsBtn.TextColor3 = Color3.fromRGB(255,255,255)
+            logsBtn.MouseButton1Click:Connect(function() bringSmall("log") end)
 
-    -- Scrap Button
-    local scrapButton = Instance.new("TextButton", contentFrame)
-    scrapButton.Size = UDim2.new(0,200,0,50)
-    scrapButton.Position = UDim2.new(0,20,0,80)
-    scrapButton.Text = "Bring Scrap"
-    scrapButton.BackgroundColor3 = Color3.fromRGB(70,65,130)
-    scrapButton.TextColor3 = Color3.fromRGB(255,255,255)
-    scrapButton.MouseButton1Click:Connect(function()
-        bringItems("scrap")
-    end)
+            local scrapBtn = Instance.new("TextButton", contentFrame)
+            scrapBtn.Size = UDim2.new(0,200,0,50)
+            scrapBtn.Position = UDim2.new(0,20,0,80)
+            scrapBtn.Text = "Bring Scrap"
+            scrapBtn.BackgroundColor3 = Color3.fromRGB(70,65,130)
+            scrapBtn.TextColor3 = Color3.fromRGB(255,255,255)
+            scrapBtn.MouseButton1Click:Connect(function() bringSmall("scrap") end)
 
-    -- Give All Items Button
-    local items = {"RayGun","AdminAx","StrongAx","GiantSack","StrongFlashlight"} -- Items, die existieren
-    local giveAllButton = Instance.new("TextButton", contentFrame)
-    giveAllButton.Size = UDim2.new(0,200,0,50)
-    giveAllButton.Position = UDim2.new(0,20,0,140)
-    giveAllButton.Text = "Give All Items"
-    giveAllButton.BackgroundColor3 = Color3.fromRGB(90,70,150)
-    giveAllButton.TextColor3 = Color3.fromRGB(255,255,255)
-    giveAllButton.MouseButton1Click:Connect(function()
-        local storage = game:GetService("ReplicatedStorage") -- oder ServerStorage, je nach Spiel
-        for _, itemName in ipairs(items) do
-            local tool = storage:FindFirstChild(itemName)
-            if tool then
-                local clone = tool:Clone()
-                clone.Parent = player.Backpack
+            -- Spawn neue Items
+            local itemsList = {"RayGun", "AdminAx", "StrongAx", "GiantSack", "StrongFlashlight"}
+            for i, itemName in ipairs(itemsList) do
+                local btn = Instance.new("TextButton", contentFrame)
+                btn.Size = UDim2.new(0,200,0,40)
+                btn.Position = UDim2.new(0,20,0,140 + (i-1)*50)
+                btn.Text = "Spawn " .. itemName
+                btn.BackgroundColor3 = Color3.fromRGB(90,70,150)
+                btn.TextColor3 = Color3.fromRGB(255,255,255)
+                btn.MouseButton1Click:Connect(function()
+                    local storage = game:GetService("ReplicatedStorage")
+                    local tool = storage:FindFirstChild(itemName)
+                    if tool then
+                        local clone = tool:Clone()
+                        clone.Parent = player.Backpack
+                    end
+                end)
             end
         end
-    end)
-end
 
         -- LOCAL TAB
         if tabName == "Local" then
-            -- Infinite Jump Toggle
             local infJumpEnabled = false
             local toggle = Instance.new("TextButton", contentFrame)
             toggle.Size = UDim2.new(0,200,0,50)
@@ -254,7 +246,7 @@ end
                 end
             end)
 
-            -- Walkspeed Slider
+            -- WalkSpeed Slider
             local sliderBack = Instance.new("Frame", contentFrame)
             sliderBack.Size = UDim2.new(0,300,0,10)
             sliderBack.Position = UDim2.new(0,20,0,100)
@@ -266,22 +258,16 @@ end
             slider.BackgroundColor3 = Color3.fromRGB(255,255,255)
 
             local dragging = false
-
             slider.InputBegan:Connect(function(input)
-                if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                    dragging = true
-                end
+                if input.UserInputType == Enum.UserInputType.MouseButton1 then dragging = true end
             end)
             slider.InputEnded:Connect(function(input)
-                if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                    dragging = false
-                end
+                if input.UserInputType == Enum.UserInputType.MouseButton1 then dragging = false end
             end)
-
             UserInputService.InputChanged:Connect(function(input)
                 if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-                    local rel = math.clamp((input.Position.X - sliderBack.AbsolutePosition.X) / sliderBack.AbsoluteSize.X,0,1)
-                    slider.Position = UDim2.new(rel, -10, -0.5, 0)
+                    local rel = math.clamp((input.Position.X - sliderBack.AbsolutePosition.X)/sliderBack.AbsoluteSize.X,0,1)
+                    slider.Position = UDim2.new(rel,-10,-0.5,0)
                     local speed = 16 + math.floor(rel*100)
                     if player.Character and player.Character:FindFirstChildOfClass("Humanoid") then
                         player.Character:FindFirstChildOfClass("Humanoid").WalkSpeed = speed
