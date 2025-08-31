@@ -39,7 +39,7 @@ title.TextScaled = true
 title.BackgroundTransparency = 1
 title.Parent = header
 
--- Minimize und Close
+-- Close
 local closeButton = Instance.new("TextButton")
 closeButton.Size = UDim2.new(0, 40, 0, 40)
 closeButton.Position = UDim2.new(1, -45, 0.5, -20)
@@ -53,6 +53,7 @@ closeButton.MouseButton1Click:Connect(function()
     screenGui:Destroy()
 end)
 
+-- Minimize
 local minimizeButton = Instance.new("TextButton")
 minimizeButton.Size = UDim2.new(0, 40, 0, 40)
 minimizeButton.Position = UDim2.new(1, -90, 0.5, -20)
@@ -135,6 +136,7 @@ local function switchTab(tabName)
         text.Font = Enum.Font.GothamBold
         text.TextScaled = true
         text.BackgroundTransparency = 1
+    
     elseif tabName == "Help" then
         local text = Instance.new("TextLabel", contentFrame)
         text.Size = UDim2.new(1, 0, 0, 200)
@@ -144,6 +146,7 @@ local function switchTab(tabName)
         text.TextSize = 18
         text.BackgroundTransparency = 1
         text.TextWrapped = true
+    
     elseif tabName == "Teleport" then
         local tpButton = Instance.new("TextButton", contentFrame)
         tpButton.Size = UDim2.new(0,200,0,50)
@@ -156,58 +159,57 @@ local function switchTab(tabName)
                 player.Character:MoveTo(Vector3.new(0,10,0))
             end
         end)
-  elseif tabName == "Bring Stuff" then
-    -- Page Frame
-    local pageFrame = Instance.new("Frame", contentFrame)
-    pageFrame.Size = UDim2.new(1,0,1,0)
-    pageFrame.BackgroundTransparency = 1
     
-    local function bringItems(keyword)
-        for _, obj in pairs(workspace:GetDescendants()) do
-            local lowerName = obj.Name:lower()
+    elseif tabName == "Bring Stuff" then
+        local pageFrame = Instance.new("Frame", contentFrame)
+        pageFrame.Size = UDim2.new(1,0,1,0)
+        pageFrame.BackgroundTransparency = 1
+        
+        -- Funktion zum Spawnen neben dem Spieler
+        local function bringItems(keyword)
+            local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+            if not root then return end
             
-            -- ✅ Nur echte Logs & Scrap, nicht Campfire oder andere Parts
-            if (keyword == "log" and lowerName:find("log") and not lowerName:find("fire")) 
-            or (keyword == "scrap" and lowerName:find("scrap")) then
+            local offset = Vector3.new(5,2,0) -- seitlich neben Spieler
+            for _, obj in pairs(workspace:GetDescendants()) do
+                local lowerName = obj.Name:lower()
                 
-                -- Wenn es ein Model ist → PivotTo benutzen
-                if obj:IsA("Model") and obj:FindFirstChildWhichIsA("BasePart") then
-                    obj:PivotTo(player.Character.HumanoidRootPart.CFrame + Vector3.new(0,5,0))
-                -- Wenn es nur ein einzelner Part ist
-                elseif obj:IsA("BasePart") then
-                    obj.CFrame = player.Character.HumanoidRootPart.CFrame + Vector3.new(0,5,0)
-                    obj.Anchored = false -- sicherstellen, dass er bewegbar bleibt
+                -- Nur echte Logs/Scrap, kein Feuer
+                if (keyword == "log" and lowerName:find("log") and not lowerName:find("fire")) 
+                or (keyword == "scrap" and lowerName:find("scrap")) then
+                    
+                    if obj:IsA("Model") and obj:FindFirstChildWhichIsA("BasePart") then
+                        obj:PivotTo(root.CFrame + offset)
+                    elseif obj:IsA("BasePart") then
+                        obj.CFrame = root.CFrame + offset
+                        obj.Anchored = false
+                    end
                 end
             end
         end
-    end
 
-    -- Logs Button
-    local logsButton = Instance.new("TextButton", pageFrame)
-    logsButton.Size = UDim2.new(0,200,0,50)
-    logsButton.Position = UDim2.new(0,20,0,20)
-    logsButton.Text = "Bring Logs"
-    logsButton.BackgroundColor3 = Color3.fromRGB(70,65,130)
-    logsButton.TextColor3 = Color3.fromRGB(255,255,255)
-    logsButton.MouseButton1Click:Connect(function()
-        bringItems("log")
-    end)
+        -- Logs Button
+        local logsButton = Instance.new("TextButton", pageFrame)
+        logsButton.Size = UDim2.new(0,200,0,50)
+        logsButton.Position = UDim2.new(0,20,0,20)
+        logsButton.Text = "Bring Logs"
+        logsButton.BackgroundColor3 = Color3.fromRGB(70,65,130)
+        logsButton.TextColor3 = Color3.fromRGB(255,255,255)
+        logsButton.MouseButton1Click:Connect(function()
+            bringItems("log")
+        end)
+        
+        -- Scrap Button
+        local scrapButton = Instance.new("TextButton", pageFrame)
+        scrapButton.Size = UDim2.new(0,200,0,50)
+        scrapButton.Position = UDim2.new(0,20,0,80)
+        scrapButton.Text = "Bring Scrap"
+        scrapButton.BackgroundColor3 = Color3.fromRGB(70,65,130)
+        scrapButton.TextColor3 = Color3.fromRGB(255,255,255)
+        scrapButton.MouseButton1Click:Connect(function()
+            bringItems("scrap")
+        end)
     
-    -- Scrap Button
-    local scrapButton = Instance.new("TextButton", pageFrame)
-    scrapButton.Size = UDim2.new(0,200,0,50)
-    scrapButton.Position = UDim2.new(0,20,0,80)
-    scrapButton.Text = "Bring Scrap"
-    scrapButton.BackgroundColor3 = Color3.fromRGB(70,65,130)
-    scrapButton.TextColor3 = Color3.fromRGB(255,255,255)
-    scrapButton.MouseButton1Click:Connect(function()
-        bringItems("scrap")
-    end)
-end
-
-        
-        showPage()
-        
     elseif tabName == "Local" then
         -- Infinite Jump
         local infJumpToggle = false
