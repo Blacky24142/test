@@ -1,4 +1,4 @@
--- Roblox GUI ähnlich Discord Style (Voidware Style) verbessert
+-- Roblox GUI ähnlich Discord Style (Voidware Style) komplett
 
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
@@ -22,7 +22,7 @@ local mainCorner = Instance.new("UICorner")
 mainCorner.CornerRadius = UDim.new(0, 12)
 mainCorner.Parent = mainFrame
 
--- Hotkey (RightShift zum Öffnen/Schließen)
+-- Hotkey RightShift
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
     if gameProcessed then return end
     if input.KeyCode == Enum.KeyCode.RightShift then
@@ -32,27 +32,26 @@ end)
 
 -- Header
 local header = Instance.new("Frame")
-header.Size = UDim2.new(1, 0, 0, 45)
-header.BackgroundColor3 = Color3.fromRGB(35, 30, 70)
+header.Size = UDim2.new(1,0,0,45)
+header.BackgroundColor3 = Color3.fromRGB(35,30,70)
 header.Parent = mainFrame
 
 local title = Instance.new("TextLabel")
-title.Size = UDim2.new(1, -100, 1, 0)
-title.Position = UDim2.new(0, 15, 0, 0)
+title.Size = UDim2.new(1,-100,1,0)
+title.Position = UDim2.new(0,15,0,0)
 title.Text = "Voidware"
-title.TextColor3 = Color3.fromRGB(255, 255, 255)
+title.TextColor3 = Color3.fromRGB(255,255,255)
 title.TextXAlignment = Enum.TextXAlignment.Left
 title.Font = Enum.Font.GothamBold
 title.TextScaled = true
 title.BackgroundTransparency = 1
 title.Parent = header
 
--- Close Button
 local closeButton = Instance.new("TextButton")
-closeButton.Size = UDim2.new(0, 40, 0, 40)
-closeButton.Position = UDim2.new(1, -45, 0.5, -20)
+closeButton.Size = UDim2.new(0,40,0,40)
+closeButton.Position = UDim2.new(1,-45,0.5,-20)
 closeButton.Text = "X"
-closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+closeButton.TextColor3 = Color3.fromRGB(255,255,255)
 closeButton.Font = Enum.Font.GothamBold
 closeButton.TextScaled = true
 closeButton.BackgroundTransparency = 1
@@ -63,20 +62,20 @@ end)
 
 -- Sidebar
 local sidebar = Instance.new("Frame")
-sidebar.Size = UDim2.new(0, 180, 1, -45)
-sidebar.Position = UDim2.new(0, 0, 0, 45)
-sidebar.BackgroundColor3 = Color3.fromRGB(40, 35, 80)
+sidebar.Size = UDim2.new(0,180,1,-45)
+sidebar.Position = UDim2.new(0,0,0,45)
+sidebar.BackgroundColor3 = Color3.fromRGB(40,35,80)
 sidebar.Parent = mainFrame
 
 -- Profil unten
 local profileFrame = Instance.new("Frame")
-profileFrame.Size = UDim2.new(1, 0, 0, 70)
-profileFrame.Position = UDim2.new(0, 0, 1, -70)
-profileFrame.BackgroundColor3 = Color3.fromRGB(35, 30, 70)
+profileFrame.Size = UDim2.new(1,0,0,70)
+profileFrame.Position = UDim2.new(0,0,1,-70)
+profileFrame.BackgroundColor3 = Color3.fromRGB(35,30,70)
 profileFrame.Parent = sidebar
 
 local profileCorner = Instance.new("UICorner")
-profileCorner.CornerRadius = UDim.new(0, 10)
+profileCorner.CornerRadius = UDim.new(0,10)
 profileCorner.Parent = profileFrame
 
 local thumbType = Enum.ThumbnailType.HeadShot
@@ -84,32 +83,32 @@ local thumbSize = Enum.ThumbnailSize.Size100x100
 local content, isReady = Players:GetUserThumbnailAsync(player.UserId, thumbType, thumbSize)
 
 local avatar = Instance.new("ImageLabel")
-avatar.Size = UDim2.new(0, 45, 0, 45)
-avatar.Position = UDim2.new(0, 10, 0.5, -22)
+avatar.Size = UDim2.new(0,45,0,45)
+avatar.Position = UDim2.new(0,10,0.5,-22)
 avatar.Image = content
 avatar.BackgroundTransparency = 1
 avatar.Parent = profileFrame
 
 local nameLabel = Instance.new("TextLabel")
-nameLabel.Size = UDim2.new(1, -65, 1, 0)
-nameLabel.Position = UDim2.new(0, 60, 0, 0)
+nameLabel.Size = UDim2.new(1,-65,1,0)
+nameLabel.Position = UDim2.new(0,60,0,0)
 nameLabel.Text = player.Name .. "\n@" .. player.UserId
-nameLabel.TextColor3 = Color3.fromRGB(200, 200, 255)
+nameLabel.TextColor3 = Color3.fromRGB(200,200,255)
 nameLabel.Font = Enum.Font.Gotham
 nameLabel.TextScaled = true
 nameLabel.TextXAlignment = Enum.TextXAlignment.Left
 nameLabel.BackgroundTransparency = 1
 nameLabel.Parent = profileFrame
 
--- Content Area
+-- Content Frame
 local contentFrame = Instance.new("Frame")
-contentFrame.Size = UDim2.new(1, -180, 1, -45)
-contentFrame.Position = UDim2.new(0, 180, 0, 45)
-contentFrame.BackgroundColor3 = Color3.fromRGB(55, 50, 100)
+contentFrame.Size = UDim2.new(1,-180,1,-45)
+contentFrame.Position = UDim2.new(0,180,0,45)
+contentFrame.BackgroundColor3 = Color3.fromRGB(55,50,100)
 contentFrame.Parent = mainFrame
 
 -- Tabs
-local tabs = {"Main", "Help", "Teleport", "Bring Stuff", "Local"}
+local tabs = {"Main","Help","Teleport","Bring Stuff","Local"}
 
 local function clearContent()
     for _, child in ipairs(contentFrame:GetChildren()) do
@@ -122,8 +121,8 @@ end
 -- Sidebar Buttons
 for i, tabName in ipairs(tabs) do
     local tabButton = Instance.new("TextButton")
-    tabButton.Size = UDim2.new(1, 0, 0, 40)
-    tabButton.Position = UDim2.new(0, 0, 0, (i-1)*45)
+    tabButton.Size = UDim2.new(1,0,0,40)
+    tabButton.Position = UDim2.new(0,0,0,(i-1)*45)
     tabButton.Text = tabName
     tabButton.TextColor3 = Color3.fromRGB(255,255,255)
     tabButton.BackgroundColor3 = Color3.fromRGB(60,55,110)
@@ -131,8 +130,8 @@ for i, tabName in ipairs(tabs) do
 
     tabButton.MouseButton1Click:Connect(function()
         clearContent()
-        
-        -- MAIN TAB
+
+        -- MAIN
         if tabName == "Main" then
             local label = Instance.new("TextLabel", contentFrame)
             label.Size = UDim2.new(1,0,0,50)
@@ -142,8 +141,8 @@ for i, tabName in ipairs(tabs) do
             label.Font = Enum.Font.GothamBold
             label.TextScaled = true
         end
-        
-        -- HELP TAB
+
+        -- HELP
         if tabName == "Help" then
             local helpLabel = Instance.new("TextLabel", contentFrame)
             helpLabel.Size = UDim2.new(1,0,1,0)
@@ -154,7 +153,7 @@ for i, tabName in ipairs(tabs) do
             helpLabel.TextScaled = true
         end
 
-        -- TELEPORT TAB
+        -- TELEPORT
         if tabName == "Teleport" then
             local tpButton = Instance.new("TextButton", contentFrame)
             tpButton.Size = UDim2.new(0,200,0,50)
@@ -169,12 +168,36 @@ for i, tabName in ipairs(tabs) do
             end)
         end
 
-        -- BRING STUFF TAB
+        -- BRING STUFF
         if tabName == "Bring Stuff" then
             local spawnY = 3
-            -- Kleine Logs/Schrott
-            local function bringSmall(keyword)
-                local root = player.Character.HumanoidRootPart
+            local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+            if not root then return end
+
+            -- Alles existierende Items
+            local function bringAllExisting()
+                for _, obj in pairs(workspace:GetDescendants()) do
+                    if obj:IsA("BasePart") and obj.Size.Magnitude < 8 then
+                        obj.CFrame = root.CFrame + Vector3.new(5, spawnY, 0)
+                        obj.Anchored = false
+                    elseif obj:IsA("Model") and obj.PrimaryPart and obj:GetExtentsSize().Magnitude < 8 then
+                        obj:PivotTo(root.CFrame + Vector3.new(5, spawnY, 0))
+                    end
+                end
+            end
+
+            local bringAllBtn = Instance.new("TextButton", contentFrame)
+            bringAllBtn.Size = UDim2.new(0,200,0,50)
+            bringAllBtn.Position = UDim2.new(0,20,0,20)
+            bringAllBtn.Text = "Bring All Items"
+            bringAllBtn.BackgroundColor3 = Color3.fromRGB(90,70,150)
+            bringAllBtn.TextColor3 = Color3.fromRGB(255,255,255)
+            bringAllBtn.MouseButton1Click:Connect(function()
+                bringAllExisting()
+            end)
+
+            -- Logs
+            local function bringFiltered(keyword)
                 for _, obj in pairs(workspace:GetDescendants()) do
                     local name = obj.Name:lower()
                     if (keyword == "log" and name:find("log")) 
@@ -191,41 +214,22 @@ for i, tabName in ipairs(tabs) do
 
             local logsBtn = Instance.new("TextButton", contentFrame)
             logsBtn.Size = UDim2.new(0,200,0,50)
-            logsBtn.Position = UDim2.new(0,20,0,20)
+            logsBtn.Position = UDim2.new(0,20,0,80)
             logsBtn.Text = "Bring Logs"
             logsBtn.BackgroundColor3 = Color3.fromRGB(70,65,130)
             logsBtn.TextColor3 = Color3.fromRGB(255,255,255)
-            logsBtn.MouseButton1Click:Connect(function() bringSmall("log") end)
+            logsBtn.MouseButton1Click:Connect(function() bringFiltered("log") end)
 
             local scrapBtn = Instance.new("TextButton", contentFrame)
             scrapBtn.Size = UDim2.new(0,200,0,50)
-            scrapBtn.Position = UDim2.new(0,20,0,80)
+            scrapBtn.Position = UDim2.new(0,20,0,140)
             scrapBtn.Text = "Bring Scrap"
             scrapBtn.BackgroundColor3 = Color3.fromRGB(70,65,130)
             scrapBtn.TextColor3 = Color3.fromRGB(255,255,255)
-            scrapBtn.MouseButton1Click:Connect(function() bringSmall("scrap") end)
-
-            -- Spawn neue Items
-            local itemsList = {"RayGun", "AdminAx", "StrongAx", "GiantSack", "StrongFlashlight"}
-            for i, itemName in ipairs(itemsList) do
-                local btn = Instance.new("TextButton", contentFrame)
-                btn.Size = UDim2.new(0,200,0,40)
-                btn.Position = UDim2.new(0,20,0,140 + (i-1)*50)
-                btn.Text = "Spawn " .. itemName
-                btn.BackgroundColor3 = Color3.fromRGB(90,70,150)
-                btn.TextColor3 = Color3.fromRGB(255,255,255)
-                btn.MouseButton1Click:Connect(function()
-                    local storage = game:GetService("ReplicatedStorage")
-                    local tool = storage:FindFirstChild(itemName)
-                    if tool then
-                        local clone = tool:Clone()
-                        clone.Parent = player.Backpack
-                    end
-                end)
-            end
+            scrapBtn.MouseButton1Click:Connect(function() bringFiltered("scrap") end)
         end
 
-        -- LOCAL TAB
+        -- LOCAL
         if tabName == "Local" then
             local infJumpEnabled = false
             local toggle = Instance.new("TextButton", contentFrame)
