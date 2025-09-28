@@ -1,4 +1,4 @@
--- Roblox GUI ähnlich Discord Style (Voidware Style) komplett + ChestFarm + CurrencyCheck
+-- Roblox GUI ähnlich Discord Style (Voidware Style) komplett + ChestFarm + CurrencyCheck mit Copy
 
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
@@ -107,7 +107,7 @@ contentFrame.Position = UDim2.new(0,180,0,45)
 contentFrame.BackgroundColor3 = Color3.fromRGB(55,50,100)
 contentFrame.Parent = mainFrame
 
--- Tabs (neue Kategorie "ChestFarm" und "CurrencyCheck")
+-- Tabs
 local tabs = {"Main","Help","Teleport","Bring Stuff","Local","ChestFarm","CurrencyCheck"}
 
 local function clearContent()
@@ -200,81 +200,8 @@ for i, tabName in ipairs(tabs) do
             helpLabel.TextScaled = true
         end
 
-        -- TELEPORT
-        if tabName == "Teleport" then
-            local tpButton = Instance.new("TextButton", contentFrame)
-            tpButton.Size = UDim2.new(0,200,0,50)
-            tpButton.Position = UDim2.new(0,20,0,20)
-            tpButton.Text = "Teleport to Spawn"
-            tpButton.TextColor3 = Color3.fromRGB(255,255,255)
-            tpButton.BackgroundColor3 = Color3.fromRGB(70,65,130)
-            tpButton.MouseButton1Click:Connect(function()
-                if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-                    player.Character:MoveTo(Vector3.new(0,10,0))
-                end
-            end)
-        end
-
-        -- BRING STUFF
-        if tabName == "Bring Stuff" then
-            local spawnY = 3
-            local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
-            if not root then return end
-
-            local function bringAllExisting()
-                for _, obj in pairs(workspace:GetDescendants()) do
-                    if obj:IsA("BasePart") and obj.Size.Magnitude < 8 then
-                        obj.CFrame = root.CFrame + Vector3.new(5, spawnY, 0)
-                        obj.Anchored = false
-                    elseif obj:IsA("Model") and obj.PrimaryPart and obj:GetExtentsSize().Magnitude < 8 then
-                        obj:PivotTo(root.CFrame + Vector3.new(5, spawnY, 0))
-                    end
-                end
-            end
-
-            local bringAllBtn = Instance.new("TextButton", contentFrame)
-            bringAllBtn.Size = UDim2.new(0,200,0,50)
-            bringAllBtn.Position = UDim2.new(0,20,0,20)
-            bringAllBtn.Text = "Bring All Items"
-            bringAllBtn.BackgroundColor3 = Color3.fromRGB(90,70,150)
-            bringAllBtn.TextColor3 = Color3.fromRGB(255,255,255)
-            bringAllBtn.MouseButton1Click:Connect(function()
-                bringAllExisting()
-            end)
-        end
-
-        -- LOCAL
-        if tabName == "Local" then
-            local infJumpEnabled = false
-            local toggle = Instance.new("TextButton", contentFrame)
-            toggle.Size = UDim2.new(0,200,0,50)
-            toggle.Position = UDim2.new(0,20,0,20)
-            toggle.Text = "Infinite Jump: OFF"
-            toggle.BackgroundColor3 = Color3.fromRGB(70,65,130)
-            toggle.TextColor3 = Color3.fromRGB(255,255,255)
-
-            toggle.MouseButton1Click:Connect(function()
-                infJumpEnabled = not infJumpEnabled
-                toggle.Text = "Infinite Jump: " .. (infJumpEnabled and "ON" or "OFF")
-            end)
-
-            UserInputService.JumpRequest:Connect(function()
-                if infJumpEnabled and player.Character and player.Character:FindFirstChildOfClass("Humanoid") then
-                    player.Character:FindFirstChildOfClass("Humanoid"):ChangeState(Enum.HumanoidStateType.Jumping)
-                end
-            end)
-        end
-
         -- 🌟 CHESTFARM
         if tabName == "ChestFarm" then
-            local label = Instance.new("TextLabel", contentFrame)
-            label.Size = UDim2.new(1,0,0,50)
-            label.Text = "Diamond Chest AutoCollect"
-            label.TextColor3 = Color3.fromRGB(255,255,255)
-            label.BackgroundTransparency = 1
-            label.Font = Enum.Font.GothamBold
-            label.TextScaled = true
-
             local startBtn = Instance.new("TextButton", contentFrame)
             startBtn.Size = UDim2.new(0,200,0,50)
             startBtn.Position = UDim2.new(0,20,0,80)
@@ -319,7 +246,7 @@ for i, tabName in ipairs(tabs) do
             label.TextScaled = true
 
             local scroll = Instance.new("ScrollingFrame", contentFrame)
-            scroll.Size = UDim2.new(1,-20,1,-60)
+            scroll.Size = UDim2.new(1,-20,1,-100)
             scroll.Position = UDim2.new(0,10,0,50)
             scroll.BackgroundTransparency = 1
             scroll.BorderSizePixel = 0
@@ -331,6 +258,8 @@ for i, tabName in ipairs(tabs) do
             layout.SortOrder = Enum.SortOrder.LayoutOrder
 
             local results = searchForCurrency()
+            local collectedText = {}
+
             if #results == 0 then
                 local noLabel = Instance.new("TextLabel", scroll)
                 noLabel.Size = UDim2.new(1,0,0,30)
@@ -349,9 +278,35 @@ for i, tabName in ipairs(tabs) do
                     line.Font = Enum.Font.Code
                     line.TextSize = 14
                     line.TextXAlignment = Enum.TextXAlignment.Left
+
+                    table.insert(collectedText, line.Text)
                 end
                 scroll.CanvasSize = UDim2.new(0,0,0,#results * 30)
             end
+
+            -- Copy Button
+            local copyBtn = Instance.new("TextButton", contentFrame)
+            copyBtn.Size = UDim2.new(0,200,0,40)
+            copyBtn.Position = UDim2.new(0,20,1,-50)
+            copyBtn.Text = "Alles kopieren"
+            copyBtn.BackgroundColor3 = Color3.fromRGB(80,120,180)
+            copyBtn.TextColor3 = Color3.fromRGB(255,255,255)
+            copyBtn.Font = Enum.Font.GothamBold
+            copyBtn.TextScaled = true
+
+            copyBtn.MouseButton1Click:Connect(function()
+                if #collectedText > 0 then
+                    local output = table.concat(collectedText, "\n")
+                    if setclipboard then
+                        setclipboard(output)
+                        print("📋 Currency Objekte in Zwischenablage kopiert.")
+                    else
+                        warn("⚠️ Dein Executor unterstützt setclipboard nicht.")
+                    end
+                else
+                    warn("Keine Daten zum Kopieren gefunden.")
+                end
+            end)
         end
     end)
 end
