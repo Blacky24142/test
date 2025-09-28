@@ -1,4 +1,4 @@
--- Roblox GUI ähnlich Discord Style (Voidware Style) komplett + ChestFarm + CurrencyCheck mit Copy (fix)
+-- Roblox GUI ähnlich Discord Style (Voidware Style) komplett + ChestFarm + CurrencyCheck + Diamonds Debug
 
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
@@ -108,7 +108,7 @@ contentFrame.BackgroundColor3 = Color3.fromRGB(55,50,100)
 contentFrame.Parent = mainFrame
 
 -- Tabs
-local tabs = {"Main","Help","Teleport","Bring Stuff","Local","ChestFarm","CurrencyCheck"}
+local tabs = {"Main","Help","Teleport","Bring Stuff","Local","ChestFarm","CurrencyCheck","Diamonds Debug"}
 
 local function clearContent()
     for _, child in ipairs(contentFrame:GetChildren()) do
@@ -118,11 +118,10 @@ local function clearContent()
     end
 end
 
--- Hilfsfunktion: Currency suchen
+-- Suche Currency
 local function searchForCurrency()
     local results = {}
     local keywords = {"coin","coins","gold","money","cash","gems","gem","diamond","diamonds"}
-
     local function scan(obj)
         for _, child in ipairs(obj:GetChildren()) do
             for _, key in ipairs(keywords) do
@@ -133,8 +132,21 @@ local function searchForCurrency()
             scan(child)
         end
     end
-
     scan(game)
+    return results
+end
+
+-- Suche Diamond RemoteEvents
+local function searchDiamondRemotes()
+    local results = {}
+    for _, obj in ipairs(game.ReplicatedStorage:GetDescendants()) do
+        local name = obj.Name:lower()
+        if name:find("diamond") or name:find("gem") then
+            if obj:IsA("RemoteEvent") or obj:IsA("RemoteFunction") then
+                table.insert(results, obj)
+            end
+        end
+    end
     return results
 end
 
@@ -161,7 +173,6 @@ for i, tabName in ipairs(tabs) do
             label.Font = Enum.Font.GothamBold
             label.TextScaled = true
 
-            -- Scroll nur bis 400 hoch, Platz unten für Button
             local scroll = Instance.new("ScrollingFrame", contentFrame)
             scroll.Size = UDim2.new(1,-20,0,350)
             scroll.Position = UDim2.new(0,10,0,50)
@@ -195,13 +206,11 @@ for i, tabName in ipairs(tabs) do
                     line.Font = Enum.Font.Code
                     line.TextSize = 14
                     line.TextXAlignment = Enum.TextXAlignment.Left
-
                     table.insert(collectedText, line.Text)
                 end
                 scroll.CanvasSize = UDim2.new(0,0,0,#results * 30)
             end
 
-            -- Copy Button fest unten
             local copyBtn = Instance.new("TextButton", contentFrame)
             copyBtn.Size = UDim2.new(0,200,0,40)
             copyBtn.Position = UDim2.new(0,20,0,420)
@@ -210,7 +219,6 @@ for i, tabName in ipairs(tabs) do
             copyBtn.TextColor3 = Color3.fromRGB(255,255,255)
             copyBtn.Font = Enum.Font.GothamBold
             copyBtn.TextScaled = true
-
             copyBtn.MouseButton1Click:Connect(function()
                 if #collectedText > 0 then
                     local output = table.concat(collectedText, "\n")
@@ -224,6 +232,85 @@ for i, tabName in ipairs(tabs) do
                     warn("Keine Daten zum Kopieren gefunden.")
                 end
             end)
+        end
+
+        -- 💎 DIAMONDS DEBUG
+        if tabName == "Diamonds Debug" then
+            local label = Instance.new("TextLabel", contentFrame)
+            label.Size = UDim2.new(1,0,0,40)
+            label.Text = "Diamond RemoteEvents / Functions"
+            label.TextColor3 = Color3.fromRGB(255,255,255)
+            label.BackgroundTransparency = 1
+            label.Font = Enum.Font.GothamBold
+            label.TextScaled = true
+
+            local scroll = Instance.new("ScrollingFrame", contentFrame)
+            scroll.Size = UDim2.new(1,-20,1,-50)
+            scroll.Position = UDim2.new(0,10,0,50)
+            scroll.BackgroundTransparency = 1
+            scroll.ScrollBarThickness = 8
+            scroll.CanvasSize = UDim2.new(0,0,0,0)
+
+            local layout = Instance.new("UIListLayout", scroll)
+            layout.Padding = UDim.new(0,5)
+            layout.SortOrder = Enum.SortOrder.LayoutOrder
+
+            local remotes = searchDiamondRemotes()
+            if #remotes == 0 then
+                local noLabel = Instance.new("TextLabel", scroll)
+                noLabel.Size = UDim2.new(1,0,0,30)
+                noLabel.Text = "❌ Keine Diamond Remotes gefunden."
+                noLabel.TextColor3 = Color3.fromRGB(255,200,200)
+                noLabel.BackgroundTransparency = 1
+                noLabel.Font = Enum.Font.Gotham
+                noLabel.TextScaled = true
+            else
+                for _, remote in ipairs(remotes) do
+                    local container = Instance.new("Frame", scroll)
+                    container.Size = UDim2.new(1,-10,0,30)
+                    container.BackgroundTransparency = 1
+
+                    local objLabel = Instance.new("TextLabel", container)
+                    objLabel.Size = UDim2.new(0.5,0,1,0)
+                    objLabel.Text = remote:GetFullName()
+                    objLabel.TextColor3 = Color3.fromRGB(255,255,255)
+                    objLabel.Font = Enum.Font.Code
+                    objLabel.TextSize = 12
+                    objLabel.BackgroundTransparency = 1
+                    objLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+                    local input = Instance.new("TextBox", container)
+                    input.Size = UDim2.new(0,60,1,0)
+                    input.Position = UDim2.new(0.55,0,0,0)
+                    input.PlaceholderText = "10"
+                    input.Text = ""
+                    input.TextSize = 12
+                    input.Font = Enum.Font.Gotham
+                    input.BackgroundColor3 = Color3.fromRGB(70,65,130)
+                    input.TextColor3 = Color3.fromRGB(255,255,255)
+
+                    local fireBtn = Instance.new("TextButton", container)
+                    fireBtn.Size = UDim2.new(0,80,1,0)
+                    fireBtn.Position = UDim2.new(0.7,0,0,0)
+                    fireBtn.Text = "FireServer"
+                    fireBtn.BackgroundColor3 = Color3.fromRGB(100,80,160)
+                    fireBtn.TextColor3 = Color3.fromRGB(255,255,255)
+                    fireBtn.Font = Enum.Font.GothamBold
+                    fireBtn.TextSize = 12
+
+                    fireBtn.MouseButton1Click:Connect(function()
+                        local amount = tonumber(input.Text) or 10
+                        if remote:IsA("RemoteEvent") then
+                            remote:FireServer(amount)
+                            print("🔥 FireServer:", remote:GetFullName(), amount)
+                        elseif remote:IsA("RemoteFunction") then
+                            local result = remote:InvokeServer(amount)
+                            print("📡 InvokeServer:", remote:GetFullName(), amount, "->", result)
+                        end
+                    end)
+                end
+                scroll.CanvasSize = UDim2.new(0,0,0,#remotes * 35)
+            end
         end
     end)
 end
