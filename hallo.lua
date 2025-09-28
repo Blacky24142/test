@@ -1,4 +1,4 @@
--- Roblox GUI ähnlich Discord Style (Voidware Style) komplett + ChestFarm Kategorie
+-- Roblox GUI ähnlich Discord Style (Voidware Style) komplett + ChestFarm + CurrencyCheck
 
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
@@ -107,8 +107,8 @@ contentFrame.Position = UDim2.new(0,180,0,45)
 contentFrame.BackgroundColor3 = Color3.fromRGB(55,50,100)
 contentFrame.Parent = mainFrame
 
--- Tabs (neue Kategorie "ChestFarm")
-local tabs = {"Main","Help","Teleport","Bring Stuff","Local","ChestFarm"}
+-- Tabs (neue Kategorie "ChestFarm" und "CurrencyCheck")
+local tabs = {"Main","Help","Teleport","Bring Stuff","Local","ChestFarm","CurrencyCheck"}
 
 local function clearContent()
     for _, child in ipairs(contentFrame:GetChildren()) do
@@ -116,6 +116,26 @@ local function clearContent()
             child:Destroy()
         end
     end
+end
+
+-- Hilfsfunktion: Currency suchen
+local function searchForCurrency()
+    local results = {}
+    local keywords = {"coin","coins","gold","money","cash","gems","gem","diamond","diamonds"}
+
+    local function scan(obj)
+        for _, child in ipairs(obj:GetChildren()) do
+            for _, key in ipairs(keywords) do
+                if string.find(child.Name:lower(), key) then
+                    table.insert(results, child)
+                end
+            end
+            scan(child)
+        end
+    end
+
+    scan(game)
+    return results
 end
 
 -- Hilfsfunktion: nächste Chest finden
@@ -271,7 +291,6 @@ for i, tabName in ipairs(tabs) do
                     return
                 end
 
-                -- Teleportiere hin
                 local hrp = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
                 if hrp then
                     if chest:IsA("Model") and chest.PrimaryPart then
@@ -281,13 +300,58 @@ for i, tabName in ipairs(tabs) do
                     end
                 end
 
-                -- Versuch Chest zu öffnen (lokal, nur GUI-Effekt)
                 for _, d in ipairs(chest:GetDescendants()) do
                     if d:IsA("ProximityPrompt") then
-                        fireproximityprompt(d) -- Exploit-Funktion, funktioniert nur in Executor
+                        fireproximityprompt(d)
                     end
                 end
             end)
+        end
+
+        -- 💎 CURRENCYCHECK
+        if tabName == "CurrencyCheck" then
+            local label = Instance.new("TextLabel", contentFrame)
+            label.Size = UDim2.new(1,0,0,40)
+            label.Text = "Gefundene Currency Objekte"
+            label.TextColor3 = Color3.fromRGB(255,255,255)
+            label.BackgroundTransparency = 1
+            label.Font = Enum.Font.GothamBold
+            label.TextScaled = true
+
+            local scroll = Instance.new("ScrollingFrame", contentFrame)
+            scroll.Size = UDim2.new(1,-20,1,-60)
+            scroll.Position = UDim2.new(0,10,0,50)
+            scroll.BackgroundTransparency = 1
+            scroll.BorderSizePixel = 0
+            scroll.ScrollBarThickness = 8
+            scroll.CanvasSize = UDim2.new(0,0,0,0)
+
+            local layout = Instance.new("UIListLayout", scroll)
+            layout.Padding = UDim.new(0,5)
+            layout.SortOrder = Enum.SortOrder.LayoutOrder
+
+            local results = searchForCurrency()
+            if #results == 0 then
+                local noLabel = Instance.new("TextLabel", scroll)
+                noLabel.Size = UDim2.new(1,0,0,30)
+                noLabel.Text = "❌ Keine Currency Objekte gefunden."
+                noLabel.TextColor3 = Color3.fromRGB(255,200,200)
+                noLabel.BackgroundTransparency = 1
+                noLabel.Font = Enum.Font.Gotham
+                noLabel.TextScaled = true
+            else
+                for _, obj in ipairs(results) do
+                    local line = Instance.new("TextLabel", scroll)
+                    line.Size = UDim2.new(1,0,0,25)
+                    line.Text = obj:GetFullName() .. " [" .. obj.ClassName .. "]"
+                    line.TextColor3 = Color3.fromRGB(200,255,200)
+                    line.BackgroundTransparency = 1
+                    line.Font = Enum.Font.Code
+                    line.TextSize = 14
+                    line.TextXAlignment = Enum.TextXAlignment.Left
+                end
+                scroll.CanvasSize = UDim2.new(0,0,0,#results * 30)
+            end
         end
     end)
 end
