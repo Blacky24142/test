@@ -1,4 +1,4 @@
--- Roblox GUI ähnlich Discord Style (Voidware Style) komplett + ChestFarm + CurrencyCheck mit Copy
+-- Roblox GUI ähnlich Discord Style (Voidware Style) komplett + ChestFarm + CurrencyCheck mit Copy (fix)
 
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
@@ -138,33 +138,6 @@ local function searchForCurrency()
     return results
 end
 
--- Hilfsfunktion: nächste Chest finden
-local function findClosestChest()
-    local hrp = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
-    if not hrp then return nil end
-
-    local best, bestDist = nil, math.huge
-    for _, obj in ipairs(workspace:GetDescendants()) do
-        local name = obj.Name:lower()
-        if name:find("chest") or name:find("diamond") then
-            local pos
-            if obj:IsA("Model") then
-                pos = obj.PrimaryPart and obj.PrimaryPart.Position
-            elseif obj:IsA("BasePart") then
-                pos = obj.Position
-            end
-            if pos then
-                local dist = (hrp.Position - pos).Magnitude
-                if dist < bestDist then
-                    bestDist = dist
-                    best = obj
-                end
-            end
-        end
-    end
-    return best
-end
-
 -- Sidebar Buttons
 for i, tabName in ipairs(tabs) do
     local tabButton = Instance.new("TextButton")
@@ -178,63 +151,6 @@ for i, tabName in ipairs(tabs) do
     tabButton.MouseButton1Click:Connect(function()
         clearContent()
 
-        -- MAIN
-        if tabName == "Main" then
-            local label = Instance.new("TextLabel", contentFrame)
-            label.Size = UDim2.new(1,0,0,50)
-            label.Text = "Willkommen im Voidware Dashboard!"
-            label.TextColor3 = Color3.fromRGB(255,255,255)
-            label.BackgroundTransparency = 1
-            label.Font = Enum.Font.GothamBold
-            label.TextScaled = true
-        end
-
-        -- HELP
-        if tabName == "Help" then
-            local helpLabel = Instance.new("TextLabel", contentFrame)
-            helpLabel.Size = UDim2.new(1,0,1,0)
-            helpLabel.Text = "Hier kannst du Infos & Hilfe anzeigen."
-            helpLabel.TextColor3 = Color3.fromRGB(255,255,255)
-            helpLabel.BackgroundTransparency = 1
-            helpLabel.Font = Enum.Font.Gotham
-            helpLabel.TextScaled = true
-        end
-
-        -- 🌟 CHESTFARM
-        if tabName == "ChestFarm" then
-            local startBtn = Instance.new("TextButton", contentFrame)
-            startBtn.Size = UDim2.new(0,200,0,50)
-            startBtn.Position = UDim2.new(0,20,0,80)
-            startBtn.Text = "Start AutoCollect"
-            startBtn.BackgroundColor3 = Color3.fromRGB(100,80,180)
-            startBtn.TextColor3 = Color3.fromRGB(255,255,255)
-            startBtn.Font = Enum.Font.GothamBold
-            startBtn.TextScaled = true
-
-            startBtn.MouseButton1Click:Connect(function()
-                local chest = findClosestChest()
-                if not chest then
-                    warn("❌ Keine Chest gefunden!")
-                    return
-                end
-
-                local hrp = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
-                if hrp then
-                    if chest:IsA("Model") and chest.PrimaryPart then
-                        hrp.CFrame = chest.PrimaryPart.CFrame + Vector3.new(0,3,0)
-                    elseif chest:IsA("BasePart") then
-                        hrp.CFrame = chest.CFrame + Vector3.new(0,3,0)
-                    end
-                end
-
-                for _, d in ipairs(chest:GetDescendants()) do
-                    if d:IsA("ProximityPrompt") then
-                        fireproximityprompt(d)
-                    end
-                end
-            end)
-        end
-
         -- 💎 CURRENCYCHECK
         if tabName == "CurrencyCheck" then
             local label = Instance.new("TextLabel", contentFrame)
@@ -245,8 +161,9 @@ for i, tabName in ipairs(tabs) do
             label.Font = Enum.Font.GothamBold
             label.TextScaled = true
 
+            -- Scroll nur bis 400 hoch, Platz unten für Button
             local scroll = Instance.new("ScrollingFrame", contentFrame)
-            scroll.Size = UDim2.new(1,-20,1,-100)
+            scroll.Size = UDim2.new(1,-20,0,350)
             scroll.Position = UDim2.new(0,10,0,50)
             scroll.BackgroundTransparency = 1
             scroll.BorderSizePixel = 0
@@ -284,10 +201,10 @@ for i, tabName in ipairs(tabs) do
                 scroll.CanvasSize = UDim2.new(0,0,0,#results * 30)
             end
 
-            -- Copy Button
+            -- Copy Button fest unten
             local copyBtn = Instance.new("TextButton", contentFrame)
             copyBtn.Size = UDim2.new(0,200,0,40)
-            copyBtn.Position = UDim2.new(0,20,1,-50)
+            copyBtn.Position = UDim2.new(0,20,0,420)
             copyBtn.Text = "Alles kopieren"
             copyBtn.BackgroundColor3 = Color3.fromRGB(80,120,180)
             copyBtn.TextColor3 = Color3.fromRGB(255,255,255)
