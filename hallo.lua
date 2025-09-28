@@ -140,6 +140,48 @@ for i, tabName in ipairs(tabs) do
             label.BackgroundTransparency = 1
             label.Font = Enum.Font.GothamBold
             label.TextScaled = true
+
+            -- Tageszähler Eingabe
+            local dayLabel = Instance.new("TextLabel", contentFrame)
+            dayLabel.Size = UDim2.new(0,200,0,40)
+            dayLabel.Position = UDim2.new(0,20,0,80)
+            dayLabel.Text = "Tage überlebt setzen:"
+            dayLabel.TextColor3 = Color3.fromRGB(255,255,255)
+            dayLabel.Font = Enum.Font.Gotham
+            dayLabel.TextScaled = true
+            dayLabel.BackgroundTransparency = 1
+
+            local dayBox = Instance.new("TextBox", contentFrame)
+            dayBox.Size = UDim2.new(0,100,0,40)
+            dayBox.Position = UDim2.new(0,240,0,80)
+            dayBox.PlaceholderText = "z.B. 10"
+            dayBox.Text = ""
+            dayBox.TextScaled = true
+            dayBox.Font = Enum.Font.Gotham
+            dayBox.BackgroundColor3 = Color3.fromRGB(70,65,130)
+            dayBox.TextColor3 = Color3.fromRGB(255,255,255)
+
+            local setDayBtn = Instance.new("TextButton", contentFrame)
+            setDayBtn.Size = UDim2.new(0,120,0,40)
+            setDayBtn.Position = UDim2.new(0,360,0,80)
+            setDayBtn.Text = "Setzen"
+            setDayBtn.BackgroundColor3 = Color3.fromRGB(90,70,150)
+            setDayBtn.TextColor3 = Color3.fromRGB(255,255,255)
+            setDayBtn.Font = Enum.Font.GothamBold
+            setDayBtn.TextScaled = true
+
+            -- Funktion zum Setzen
+            local currentDay = 1
+            setDayBtn.MouseButton1Click:Connect(function()
+                local newDay = tonumber(dayBox.Text)
+                if newDay and newDay > 0 then
+                    currentDay = newDay
+                    label.Text = "Tag " .. tostring(currentDay) .. " (manuell gesetzt)"
+                    print("Tage geändert auf: ", currentDay)
+                else
+                    label.Text = "Ungültige Eingabe!"
+                end
+            end)
         end
 
         -- HELP
