@@ -1,4 +1,4 @@
--- Roblox GUI ähnlich Discord Style (Voidware Style) komplett
+-- Roblox GUI ähnlich Discord Style (Voidware Style) komplett + ChestFarm Kategorie
 
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
@@ -107,8 +107,8 @@ contentFrame.Position = UDim2.new(0,180,0,45)
 contentFrame.BackgroundColor3 = Color3.fromRGB(55,50,100)
 contentFrame.Parent = mainFrame
 
--- Tabs
-local tabs = {"Main","Help","Teleport","Bring Stuff","Local"}
+-- Tabs (neue Kategorie "ChestFarm")
+local tabs = {"Main","Help","Teleport","Bring Stuff","Local","ChestFarm"}
 
 local function clearContent()
     for _, child in ipairs(contentFrame:GetChildren()) do
@@ -118,24 +118,31 @@ local function clearContent()
     end
 end
 
--- 🔎 Suche nach Day/Tag Objekten
-local function searchForDayObjects()
-    local results = {}
-    local keywords = {"day","tage","tag","night","survived"}
+-- Hilfsfunktion: nächste Chest finden
+local function findClosestChest()
+    local hrp = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+    if not hrp then return nil end
 
-    local function scan(obj)
-        for _, child in ipairs(obj:GetChildren()) do
-            for _, key in ipairs(keywords) do
-                if string.find(child.Name:lower(), key) then
-                    table.insert(results, child)
+    local best, bestDist = nil, math.huge
+    for _, obj in ipairs(workspace:GetDescendants()) do
+        local name = obj.Name:lower()
+        if name:find("chest") or name:find("diamond") then
+            local pos
+            if obj:IsA("Model") then
+                pos = obj.PrimaryPart and obj.PrimaryPart.Position
+            elseif obj:IsA("BasePart") then
+                pos = obj.Position
+            end
+            if pos then
+                local dist = (hrp.Position - pos).Magnitude
+                if dist < bestDist then
+                    bestDist = dist
+                    best = obj
                 end
             end
-            scan(child)
         end
     end
-
-    scan(game)
-    return results
+    return best
 end
 
 -- Sidebar Buttons
@@ -153,91 +160,13 @@ for i, tabName in ipairs(tabs) do
 
         -- MAIN
         if tabName == "Main" then
-            local titleLabel = Instance.new("TextLabel", contentFrame)
-            titleLabel.Size = UDim2.new(1,0,0,40)
-            titleLabel.Text = "Day/Tag-Objekte im Spiel"
-            titleLabel.TextColor3 = Color3.fromRGB(255,255,255)
-            titleLabel.BackgroundTransparency = 1
-            titleLabel.Font = Enum.Font.GothamBold
-            titleLabel.TextScaled = true
-
-            -- ScrollingFrame für Ergebnisse
-            local scroll = Instance.new("ScrollingFrame", contentFrame)
-            scroll.Size = UDim2.new(1,-20,1,-60)
-            scroll.Position = UDim2.new(0,10,0,50)
-            scroll.BackgroundTransparency = 1
-            scroll.BorderSizePixel = 0
-            scroll.ScrollBarThickness = 8
-            scroll.CanvasSize = UDim2.new(0,0,0,0)
-
-            local layout = Instance.new("UIListLayout", scroll)
-            layout.Padding = UDim.new(0,5)
-            layout.SortOrder = Enum.SortOrder.LayoutOrder
-
-            local results = searchForDayObjects()
-            if #results == 0 then
-                local noLabel = Instance.new("TextLabel", scroll)
-                noLabel.Size = UDim2.new(1,0,0,30)
-                noLabel.Text = "❌ Keine Day/Tag Objekte gefunden."
-                noLabel.TextColor3 = Color3.fromRGB(255,200,200)
-                noLabel.BackgroundTransparency = 1
-                noLabel.Font = Enum.Font.Gotham
-                noLabel.TextScaled = true
-            else
-                for _, obj in ipairs(results) do
-                    local container = Instance.new("Frame", scroll)
-                    container.Size = UDim2.new(1,-10,0,25)
-                    container.BackgroundTransparency = 1
-
-                    local objLabel = Instance.new("TextLabel", container)
-                    objLabel.Size = UDim2.new(0.6,0,1,0)
-                    objLabel.Position = UDim2.new(0,0,0,0)
-                    objLabel.Text = obj:GetFullName()
-                    objLabel.TextColor3 = Color3.fromRGB(255,255,255)
-                    objLabel.Font = Enum.Font.Code
-                    objLabel.TextSize = 12
-                    objLabel.BackgroundTransparency = 1
-                    objLabel.TextXAlignment = Enum.TextXAlignment.Left
-
-                    local input = Instance.new("TextBox", container)
-                    input.Size = UDim2.new(0,60,1,0)
-                    input.Position = UDim2.new(0.65,0,0,0)
-                    input.PlaceholderText = "50"
-                    input.Text = ""
-                    input.TextSize = 12
-                    input.Font = Enum.Font.Gotham
-                    input.BackgroundColor3 = Color3.fromRGB(70,65,130)
-                    input.TextColor3 = Color3.fromRGB(255,255,255)
-
-                    local setBtn = Instance.new("TextButton", container)
-                    setBtn.Size = UDim2.new(0,60,1,0)
-                    setBtn.Position = UDim2.new(0.8,0,0,0)
-                    setBtn.Text = "Setzen"
-                    setBtn.BackgroundColor3 = Color3.fromRGB(90,70,150)
-                    setBtn.TextColor3 = Color3.fromRGB(255,255,255)
-                    setBtn.Font = Enum.Font.GothamBold
-                    setBtn.TextSize = 12
-
-                    setBtn.MouseButton1Click:Connect(function()
-                        local val = tonumber(input.Text)
-                        if not val then return end
-
-                        if obj:IsA("IntValue") or obj:IsA("NumberValue") then
-                            obj.Value = val
-                            print("✅ DayValue geändert:", obj:GetFullName(), val)
-                        elseif obj:IsA("StringValue") then
-                            obj.Value = tostring(val)
-                            print("✅ StringValue geändert:", obj:GetFullName(), val)
-                        elseif obj:IsA("TextLabel") or obj:IsA("TextButton") then
-                            obj.Text = "Day " .. tostring(val)
-                            print("✅ GUI-Text geändert:", obj:GetFullName(), obj.Text)
-                        else
-                            warn("⚠️ Kann Objekt nicht ändern:", obj.ClassName)
-                        end
-                    end)
-                end
-                scroll.CanvasSize = UDim2.new(0,0,0,#results * 30)
-            end
+            local label = Instance.new("TextLabel", contentFrame)
+            label.Size = UDim2.new(1,0,0,50)
+            label.Text = "Willkommen im Voidware Dashboard!"
+            label.TextColor3 = Color3.fromRGB(255,255,255)
+            label.BackgroundTransparency = 1
+            label.Font = Enum.Font.GothamBold
+            label.TextScaled = true
         end
 
         -- HELP
@@ -292,37 +221,6 @@ for i, tabName in ipairs(tabs) do
             bringAllBtn.MouseButton1Click:Connect(function()
                 bringAllExisting()
             end)
-
-            local function bringFiltered(keyword)
-                for _, obj in pairs(workspace:GetDescendants()) do
-                    local name = obj.Name:lower()
-                    if (keyword == "log" and name:find("log")) 
-                    or (keyword == "scrap" and name:find("scrap")) then
-                        if obj:IsA("BasePart") and obj.Size.Magnitude < 8 then
-                            obj.CFrame = root.CFrame + Vector3.new(5, spawnY, 0)
-                            obj.Anchored = false
-                        elseif obj:IsA("Model") and obj.PrimaryPart and obj:GetExtentsSize().Magnitude < 8 then
-                            obj:PivotTo(root.CFrame + Vector3.new(5, spawnY, 0))
-                        end
-                    end
-                end
-            end
-
-            local logsBtn = Instance.new("TextButton", contentFrame)
-            logsBtn.Size = UDim2.new(0,200,0,50)
-            logsBtn.Position = UDim2.new(0,20,0,80)
-            logsBtn.Text = "Bring Logs"
-            logsBtn.BackgroundColor3 = Color3.fromRGB(70,65,130)
-            logsBtn.TextColor3 = Color3.fromRGB(255,255,255)
-            logsBtn.MouseButton1Click:Connect(function() bringFiltered("log") end)
-
-            local scrapBtn = Instance.new("TextButton", contentFrame)
-            scrapBtn.Size = UDim2.new(0,200,0,50)
-            scrapBtn.Position = UDim2.new(0,20,0,140)
-            scrapBtn.Text = "Bring Scrap"
-            scrapBtn.BackgroundColor3 = Color3.fromRGB(70,65,130)
-            scrapBtn.TextColor3 = Color3.fromRGB(255,255,255)
-            scrapBtn.MouseButton1Click:Connect(function() bringFiltered("scrap") end)
         end
 
         -- LOCAL
@@ -345,31 +243,48 @@ for i, tabName in ipairs(tabs) do
                     player.Character:FindFirstChildOfClass("Humanoid"):ChangeState(Enum.HumanoidStateType.Jumping)
                 end
             end)
+        end
 
-            local sliderBack = Instance.new("Frame", contentFrame)
-            sliderBack.Size = UDim2.new(0,300,0,10)
-            sliderBack.Position = UDim2.new(0,20,0,100)
-            sliderBack.BackgroundColor3 = Color3.fromRGB(80,80,150)
+        -- 🌟 CHESTFARM
+        if tabName == "ChestFarm" then
+            local label = Instance.new("TextLabel", contentFrame)
+            label.Size = UDim2.new(1,0,0,50)
+            label.Text = "Diamond Chest AutoCollect"
+            label.TextColor3 = Color3.fromRGB(255,255,255)
+            label.BackgroundTransparency = 1
+            label.Font = Enum.Font.GothamBold
+            label.TextScaled = true
 
-            local slider = Instance.new("Frame", sliderBack)
-            slider.Size = UDim2.new(0,20,0,20)
-            slider.Position = UDim2.new(0,0,-0.5,0)
-            slider.BackgroundColor3 = Color3.fromRGB(255,255,255)
+            local startBtn = Instance.new("TextButton", contentFrame)
+            startBtn.Size = UDim2.new(0,200,0,50)
+            startBtn.Position = UDim2.new(0,20,0,80)
+            startBtn.Text = "Start AutoCollect"
+            startBtn.BackgroundColor3 = Color3.fromRGB(100,80,180)
+            startBtn.TextColor3 = Color3.fromRGB(255,255,255)
+            startBtn.Font = Enum.Font.GothamBold
+            startBtn.TextScaled = true
 
-            local dragging = false
-            slider.InputBegan:Connect(function(input)
-                if input.UserInputType == Enum.UserInputType.MouseButton1 then dragging = true end
-            end)
-            slider.InputEnded:Connect(function(input)
-                if input.UserInputType == Enum.UserInputType.MouseButton1 then dragging = false end
-            end)
-            UserInputService.InputChanged:Connect(function(input)
-                if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-                    local rel = math.clamp((input.Position.X - sliderBack.AbsolutePosition.X)/sliderBack.AbsoluteSize.X,0,1)
-                    slider.Position = UDim2.new(rel,-10,-0.5,0)
-                    local speed = 16 + math.floor(rel*100)
-                    if player.Character and player.Character:FindFirstChildOfClass("Humanoid") then
-                        player.Character:FindFirstChildOfClass("Humanoid").WalkSpeed = speed
+            startBtn.MouseButton1Click:Connect(function()
+                local chest = findClosestChest()
+                if not chest then
+                    warn("❌ Keine Chest gefunden!")
+                    return
+                end
+
+                -- Teleportiere hin
+                local hrp = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+                if hrp then
+                    if chest:IsA("Model") and chest.PrimaryPart then
+                        hrp.CFrame = chest.PrimaryPart.CFrame + Vector3.new(0,3,0)
+                    elseif chest:IsA("BasePart") then
+                        hrp.CFrame = chest.CFrame + Vector3.new(0,3,0)
+                    end
+                end
+
+                -- Versuch Chest zu öffnen (lokal, nur GUI-Effekt)
+                for _, d in ipairs(chest:GetDescendants()) do
+                    if d:IsA("ProximityPrompt") then
+                        fireproximityprompt(d) -- Exploit-Funktion, funktioniert nur in Executor
                     end
                 end
             end)
