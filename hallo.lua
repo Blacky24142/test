@@ -118,24 +118,24 @@ local function clearContent()
     end
 end
 
--- 🔎 DayValue-Suche (echter Counter im Spiel)
-local function findDayValue()
+-- 🔎 Suche nach Day/Tag Objekten
+local function searchForDayObjects()
+    local results = {}
     local keywords = {"day","tage","tag","night","survived"}
-    local foundValues = {}
+
     local function scan(obj)
         for _, child in ipairs(obj:GetChildren()) do
             for _, key in ipairs(keywords) do
                 if string.find(child.Name:lower(), key) then
-                    if child:IsA("IntValue") or child:IsA("NumberValue") then
-                        table.insert(foundValues, child)
-                    end
+                    table.insert(results, child)
                 end
             end
             scan(child)
         end
     end
+
     scan(game)
-    return foundValues
+    return results
 end
 
 -- Sidebar Buttons
@@ -153,64 +153,212 @@ for i, tabName in ipairs(tabs) do
 
         -- MAIN
         if tabName == "Main" then
-            local label = Instance.new("TextLabel", contentFrame)
-            label.Size = UDim2.new(1,0,0,50)
-            label.Text = "Willkommen im Voidware Dashboard!"
-            label.TextColor3 = Color3.fromRGB(255,255,255)
-            label.BackgroundTransparency = 1
-            label.Font = Enum.Font.GothamBold
-            label.TextScaled = true
+            local titleLabel = Instance.new("TextLabel", contentFrame)
+            titleLabel.Size = UDim2.new(1,0,0,50)
+            titleLabel.Text = "Day/Tag-Objekte im Spiel"
+            titleLabel.TextColor3 = Color3.fromRGB(255,255,255)
+            titleLabel.BackgroundTransparency = 1
+            titleLabel.Font = Enum.Font.GothamBold
+            titleLabel.TextScaled = true
 
-            -- Eingabefeld: Day setzen
-            local dayBox = Instance.new("TextBox", contentFrame)
-            dayBox.Size = UDim2.new(0,100,0,40)
-            dayBox.Position = UDim2.new(0,20,0,80)
-            dayBox.PlaceholderText = "z.B. 50"
-            dayBox.Text = ""
-            dayBox.TextScaled = true
-            dayBox.Font = Enum.Font.Gotham
-            dayBox.BackgroundColor3 = Color3.fromRGB(70,65,130)
-            dayBox.TextColor3 = Color3.fromRGB(255,255,255)
+            local results = searchForDayObjects()
+            if #results == 0 then
+                local noLabel = Instance.new("TextLabel", contentFrame)
+                noLabel.Size = UDim2.new(1,0,0,40)
+                noLabel.Position = UDim2.new(0,0,0,60)
+                noLabel.Text = "❌ Keine Day/Tag Objekte gefunden."
+                noLabel.TextColor3 = Color3.fromRGB(255,200,200)
+                noLabel.BackgroundTransparency = 1
+                noLabel.Font = Enum.Font.Gotham
+                noLabel.TextScaled = true
+            else
+                local y = 60
+                for _, obj in ipairs(results) do
+                    local objLabel = Instance.new("TextLabel", contentFrame)
+                    objLabel.Size = UDim2.new(0.6,0,0,40)
+                    objLabel.Position = UDim2.new(0,20,0,y)
+                    objLabel.Text = obj:GetFullName()
+                    objLabel.TextColor3 = Color3.fromRGB(255,255,255)
+                    objLabel.Font = Enum.Font.Code
+                    objLabel.TextSize = 14
+                    objLabel.BackgroundTransparency = 1
+                    objLabel.TextXAlignment = Enum.TextXAlignment.Left
 
-            local setDayBtn = Instance.new("TextButton", contentFrame)
-            setDayBtn.Size = UDim2.new(0,120,0,40)
-            setDayBtn.Position = UDim2.new(0,140,0,80)
-            setDayBtn.Text = "Setze Tag"
-            setDayBtn.BackgroundColor3 = Color3.fromRGB(90,70,150)
-            setDayBtn.TextColor3 = Color3.fromRGB(255,255,255)
-            setDayBtn.Font = Enum.Font.GothamBold
-            setDayBtn.TextScaled = true
+                    local input = Instance.new("TextBox", contentFrame)
+                    input.Size = UDim2.new(0,80,0,40)
+                    input.Position = UDim2.new(0,500,0,y)
+                    input.PlaceholderText = "z.B. 50"
+                    input.Text = ""
+                    input.TextScaled = true
+                    input.Font = Enum.Font.Gotham
+                    input.BackgroundColor3 = Color3.fromRGB(70,65,130)
+                    input.TextColor3 = Color3.fromRGB(255,255,255)
 
-            setDayBtn.MouseButton1Click:Connect(function()
-                local newDay = tonumber(dayBox.Text)
-                if not newDay or newDay < 1 then
-                    label.Text = "❌ Ungültige Eingabe!"
-                    return
+                    local setBtn = Instance.new("TextButton", contentFrame)
+                    setBtn.Size = UDim2.new(0,80,0,40)
+                    setBtn.Position = UDim2.new(0,590,0,y)
+                    setBtn.Text = "Setzen"
+                    setBtn.BackgroundColor3 = Color3.fromRGB(90,70,150)
+                    setBtn.TextColor3 = Color3.fromRGB(255,255,255)
+                    setBtn.Font = Enum.Font.GothamBold
+                    setBtn.TextScaled = true
+
+                    setBtn.MouseButton1Click:Connect(function()
+                        local val = tonumber(input.Text)
+                        if not val then return end
+
+                        if obj:IsA("IntValue") or obj:IsA("NumberValue") then
+                            obj.Value = val
+                            print("✅ DayValue geändert:", obj:GetFullName(), val)
+                        elseif obj:IsA("StringValue") then
+                            obj.Value = tostring(val)
+                            print("✅ StringValue geändert:", obj:GetFullName(), val)
+                        elseif obj:IsA("TextLabel") or obj:IsA("TextButton") then
+                            obj.Text = "Day " .. tostring(val)
+                            print("✅ GUI-Text geändert:", obj:GetFullName(), obj.Text)
+                        else
+                            warn("⚠️ Kann Objekt nicht ändern:", obj.ClassName)
+                        end
+                    end)
+
+                    y = y + 50
                 end
+            end
+        end
 
-                -- GUI ändern
-                local guiCounter = player:FindFirstChild("PlayerGui")
-                    and player.PlayerGui:FindFirstChild("Interface")
-                    and player.PlayerGui.Interface:FindFirstChild("DayCounter")
-                if guiCounter and guiCounter:IsA("TextLabel") then
-                    guiCounter.Text = "Day " .. tostring(newDay)
-                end
+        -- HELP
+        if tabName == "Help" then
+            local helpLabel = Instance.new("TextLabel", contentFrame)
+            helpLabel.Size = UDim2.new(1,0,1,0)
+            helpLabel.Text = "Hier kannst du Infos & Hilfe anzeigen."
+            helpLabel.TextColor3 = Color3.fromRGB(255,255,255)
+            helpLabel.BackgroundTransparency = 1
+            helpLabel.Font = Enum.Font.Gotham
+            helpLabel.TextScaled = true
+        end
 
-                -- Echten Value ändern
-                local found = findDayValue()
-                if #found > 0 then
-                    for _, val in ipairs(found) do
-                        val.Value = newDay
-                    end
-                    label.Text = "✅ Spiel-Tag gesetzt auf: " .. tostring(newDay)
-                    print("DayValue geändert:", newDay)
-                else
-                    label.Text = "⚠️ Kein echter DayValue gefunden – nur GUI geändert."
+        -- TELEPORT
+        if tabName == "Teleport" then
+            local tpButton = Instance.new("TextButton", contentFrame)
+            tpButton.Size = UDim2.new(0,200,0,50)
+            tpButton.Position = UDim2.new(0,20,0,20)
+            tpButton.Text = "Teleport to Spawn"
+            tpButton.TextColor3 = Color3.fromRGB(255,255,255)
+            tpButton.BackgroundColor3 = Color3.fromRGB(70,65,130)
+            tpButton.MouseButton1Click:Connect(function()
+                if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                    player.Character:MoveTo(Vector3.new(0,10,0))
                 end
             end)
         end
 
-        -- (die restlichen Tabs bleiben gleich wie in deinem Code:
-        -- Help, Teleport, Bring Stuff, Local ...)
+        -- BRING STUFF
+        if tabName == "Bring Stuff" then
+            local spawnY = 3
+            local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+            if not root then return end
+
+            local function bringAllExisting()
+                for _, obj in pairs(workspace:GetDescendants()) do
+                    if obj:IsA("BasePart") and obj.Size.Magnitude < 8 then
+                        obj.CFrame = root.CFrame + Vector3.new(5, spawnY, 0)
+                        obj.Anchored = false
+                    elseif obj:IsA("Model") and obj.PrimaryPart and obj:GetExtentsSize().Magnitude < 8 then
+                        obj:PivotTo(root.CFrame + Vector3.new(5, spawnY, 0))
+                    end
+                end
+            end
+
+            local bringAllBtn = Instance.new("TextButton", contentFrame)
+            bringAllBtn.Size = UDim2.new(0,200,0,50)
+            bringAllBtn.Position = UDim2.new(0,20,0,20)
+            bringAllBtn.Text = "Bring All Items"
+            bringAllBtn.BackgroundColor3 = Color3.fromRGB(90,70,150)
+            bringAllBtn.TextColor3 = Color3.fromRGB(255,255,255)
+            bringAllBtn.MouseButton1Click:Connect(function()
+                bringAllExisting()
+            end)
+
+            local function bringFiltered(keyword)
+                for _, obj in pairs(workspace:GetDescendants()) do
+                    local name = obj.Name:lower()
+                    if (keyword == "log" and name:find("log")) 
+                    or (keyword == "scrap" and name:find("scrap")) then
+                        if obj:IsA("BasePart") and obj.Size.Magnitude < 8 then
+                            obj.CFrame = root.CFrame + Vector3.new(5, spawnY, 0)
+                            obj.Anchored = false
+                        elseif obj:IsA("Model") and obj.PrimaryPart and obj:GetExtentsSize().Magnitude < 8 then
+                            obj:PivotTo(root.CFrame + Vector3.new(5, spawnY, 0))
+                        end
+                    end
+                end
+            end
+
+            local logsBtn = Instance.new("TextButton", contentFrame)
+            logsBtn.Size = UDim2.new(0,200,0,50)
+            logsBtn.Position = UDim2.new(0,20,0,80)
+            logsBtn.Text = "Bring Logs"
+            logsBtn.BackgroundColor3 = Color3.fromRGB(70,65,130)
+            logsBtn.TextColor3 = Color3.fromRGB(255,255,255)
+            logsBtn.MouseButton1Click:Connect(function() bringFiltered("log") end)
+
+            local scrapBtn = Instance.new("TextButton", contentFrame)
+            scrapBtn.Size = UDim2.new(0,200,0,50)
+            scrapBtn.Position = UDim2.new(0,20,0,140)
+            scrapBtn.Text = "Bring Scrap"
+            scrapBtn.BackgroundColor3 = Color3.fromRGB(70,65,130)
+            scrapBtn.TextColor3 = Color3.fromRGB(255,255,255)
+            scrapBtn.MouseButton1Click:Connect(function() bringFiltered("scrap") end)
+        end
+
+        -- LOCAL
+        if tabName == "Local" then
+            local infJumpEnabled = false
+            local toggle = Instance.new("TextButton", contentFrame)
+            toggle.Size = UDim2.new(0,200,0,50)
+            toggle.Position = UDim2.new(0,20,0,20)
+            toggle.Text = "Infinite Jump: OFF"
+            toggle.BackgroundColor3 = Color3.fromRGB(70,65,130)
+            toggle.TextColor3 = Color3.fromRGB(255,255,255)
+
+            toggle.MouseButton1Click:Connect(function()
+                infJumpEnabled = not infJumpEnabled
+                toggle.Text = "Infinite Jump: " .. (infJumpEnabled and "ON" or "OFF")
+            end)
+
+            UserInputService.JumpRequest:Connect(function()
+                if infJumpEnabled and player.Character and player.Character:FindFirstChildOfClass("Humanoid") then
+                    player.Character:FindFirstChildOfClass("Humanoid"):ChangeState(Enum.HumanoidStateType.Jumping)
+                end
+            end)
+
+            local sliderBack = Instance.new("Frame", contentFrame)
+            sliderBack.Size = UDim2.new(0,300,0,10)
+            sliderBack.Position = UDim2.new(0,20,0,100)
+            sliderBack.BackgroundColor3 = Color3.fromRGB(80,80,150)
+
+            local slider = Instance.new("Frame", sliderBack)
+            slider.Size = UDim2.new(0,20,0,20)
+            slider.Position = UDim2.new(0,0,-0.5,0)
+            slider.BackgroundColor3 = Color3.fromRGB(255,255,255)
+
+            local dragging = false
+            slider.InputBegan:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.MouseButton1 then dragging = true end
+            end)
+            slider.InputEnded:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.MouseButton1 then dragging = false end
+            end)
+            UserInputService.InputChanged:Connect(function(input)
+                if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+                    local rel = math.clamp((input.Position.X - sliderBack.AbsolutePosition.X)/sliderBack.AbsoluteSize.X,0,1)
+                    slider.Position = UDim2.new(rel,-10,-0.5,0)
+                    local speed = 16 + math.floor(rel*100)
+                    if player.Character and player.Character:FindFirstChildOfClass("Humanoid") then
+                        player.Character:FindFirstChildOfClass("Humanoid").WalkSpeed = speed
+                    end
+                end
+            end)
+        end
     end)
 end
