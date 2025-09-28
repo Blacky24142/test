@@ -118,6 +118,18 @@ local function clearContent()
     end
 end
 
+-- Hilfsfunktion: Leaderstats anzeigen
+local function getLeaderstatsInfo()
+    local stats = player:FindFirstChild("leaderstats")
+    local info = {}
+    if stats then
+        for _, v in ipairs(stats:GetChildren()) do
+            table.insert(info, v.Name .. " = " .. tostring(v.Value))
+        end
+    end
+    return info
+end
+
 -- Sidebar Buttons
 for i, tabName in ipairs(tabs) do
     local tabButton = Instance.new("TextButton")
@@ -141,7 +153,7 @@ for i, tabName in ipairs(tabs) do
             label.Font = Enum.Font.GothamBold
             label.TextScaled = true
 
-            -- Tageszähler Eingabe
+            -- Eingabe für Tage
             local dayLabel = Instance.new("TextLabel", contentFrame)
             dayLabel.Size = UDim2.new(0,200,0,40)
             dayLabel.Position = UDim2.new(0,20,0,80)
@@ -170,18 +182,69 @@ for i, tabName in ipairs(tabs) do
             setDayBtn.Font = Enum.Font.GothamBold
             setDayBtn.TextScaled = true
 
+            -- Leaderstats-Anzeige
+            local debugBox = Instance.new("TextLabel", contentFrame)
+            debugBox.Size = UDim2.new(1,-40,0,120)
+            debugBox.Position = UDim2.new(0,20,0,140)
+            debugBox.Text = "Leaderstats noch nicht geladen..."
+            debugBox.TextColor3 = Color3.fromRGB(255,255,255)
+            debugBox.Font = Enum.Font.Code
+            debugBox.TextSize = 16
+            debugBox.BackgroundTransparency = 1
+            debugBox.TextXAlignment = Enum.TextXAlignment.Left
+            debugBox.TextYAlignment = Enum.TextYAlignment.Top
+
+            -- Button: Leaderstats aktualisieren
+            local refreshBtn = Instance.new("TextButton", contentFrame)
+            refreshBtn.Size = UDim2.new(0,200,0,40)
+            refreshBtn.Position = UDim2.new(0,20,0,280)
+            refreshBtn.Text = "Leaderstats anzeigen"
+            refreshBtn.BackgroundColor3 = Color3.fromRGB(70,65,130)
+            refreshBtn.TextColor3 = Color3.fromRGB(255,255,255)
+            refreshBtn.Font = Enum.Font.Gotham
+            refreshBtn.TextScaled = true
+
+            local function refreshLeaderstats()
+                local info = getLeaderstatsInfo()
+                if #info > 0 then
+                    debugBox.Text = table.concat(info, "\n")
+                else
+                    debugBox.Text = "⚠️ Keine leaderstats gefunden!"
+                end
+            end
+
+            refreshBtn.MouseButton1Click:Connect(refreshLeaderstats)
+
             -- Funktion zum Setzen
             local currentDay = 1
             setDayBtn.MouseButton1Click:Connect(function()
                 local newDay = tonumber(dayBox.Text)
                 if newDay and newDay > 0 then
                     currentDay = newDay
-                    label.Text = "Tag " .. tostring(currentDay) .. " (manuell gesetzt)"
-                    print("Tage geändert auf: ", currentDay)
+                    label.Text = "Tag " .. tostring(currentDay) .. " (gesetzt)"
+
+                    local stats = player:FindFirstChild("leaderstats")
+                    if stats then
+                        local dayStat = stats:FindFirstChild("DaysSurvived") or stats:FindFirstChild("Day")
+                        if dayStat then
+                            dayStat.Value = currentDay
+                            print("✅ Tage geändert in leaderstats:", dayStat.Name, "=", currentDay)
+                            refreshLeaderstats()
+                        else
+                            print("⚠️ Kein 'Day' oder 'DaysSurvived' in leaderstats gefunden.")
+                            refreshLeaderstats()
+                        end
+                    else
+                        print("⚠️ Keine leaderstats gefunden.")
+                        refreshLeaderstats()
+                    end
                 else
                     label.Text = "Ungültige Eingabe!"
                 end
             end)
+
+            -- beim ersten Öffnen gleich anzeigen
+            refreshLeaderstats()
         end
 
         -- HELP
@@ -238,7 +301,7 @@ for i, tabName in ipairs(tabs) do
                 bringAllExisting()
             end)
 
-            -- Logs
+            -- Filter Funktion
             local function bringFiltered(keyword)
                 for _, obj in pairs(workspace:GetDescendants()) do
                     local name = obj.Name:lower()
