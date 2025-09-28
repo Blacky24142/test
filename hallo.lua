@@ -154,54 +154,69 @@ for i, tabName in ipairs(tabs) do
         -- MAIN
         if tabName == "Main" then
             local titleLabel = Instance.new("TextLabel", contentFrame)
-            titleLabel.Size = UDim2.new(1,0,0,50)
+            titleLabel.Size = UDim2.new(1,0,0,40)
             titleLabel.Text = "Day/Tag-Objekte im Spiel"
             titleLabel.TextColor3 = Color3.fromRGB(255,255,255)
             titleLabel.BackgroundTransparency = 1
             titleLabel.Font = Enum.Font.GothamBold
             titleLabel.TextScaled = true
 
+            -- ScrollingFrame für Ergebnisse
+            local scroll = Instance.new("ScrollingFrame", contentFrame)
+            scroll.Size = UDim2.new(1,-20,1,-60)
+            scroll.Position = UDim2.new(0,10,0,50)
+            scroll.BackgroundTransparency = 1
+            scroll.BorderSizePixel = 0
+            scroll.ScrollBarThickness = 8
+            scroll.CanvasSize = UDim2.new(0,0,0,0)
+
+            local layout = Instance.new("UIListLayout", scroll)
+            layout.Padding = UDim.new(0,5)
+            layout.SortOrder = Enum.SortOrder.LayoutOrder
+
             local results = searchForDayObjects()
             if #results == 0 then
-                local noLabel = Instance.new("TextLabel", contentFrame)
-                noLabel.Size = UDim2.new(1,0,0,40)
-                noLabel.Position = UDim2.new(0,0,0,60)
+                local noLabel = Instance.new("TextLabel", scroll)
+                noLabel.Size = UDim2.new(1,0,0,30)
                 noLabel.Text = "❌ Keine Day/Tag Objekte gefunden."
                 noLabel.TextColor3 = Color3.fromRGB(255,200,200)
                 noLabel.BackgroundTransparency = 1
                 noLabel.Font = Enum.Font.Gotham
                 noLabel.TextScaled = true
             else
-                local y = 60
                 for _, obj in ipairs(results) do
-                    local objLabel = Instance.new("TextLabel", contentFrame)
-                    objLabel.Size = UDim2.new(0.6,0,0,40)
-                    objLabel.Position = UDim2.new(0,20,0,y)
+                    local container = Instance.new("Frame", scroll)
+                    container.Size = UDim2.new(1,-10,0,25)
+                    container.BackgroundTransparency = 1
+
+                    local objLabel = Instance.new("TextLabel", container)
+                    objLabel.Size = UDim2.new(0.6,0,1,0)
+                    objLabel.Position = UDim2.new(0,0,0,0)
                     objLabel.Text = obj:GetFullName()
                     objLabel.TextColor3 = Color3.fromRGB(255,255,255)
                     objLabel.Font = Enum.Font.Code
-                    objLabel.TextSize = 14
+                    objLabel.TextSize = 12
                     objLabel.BackgroundTransparency = 1
                     objLabel.TextXAlignment = Enum.TextXAlignment.Left
 
-                    local input = Instance.new("TextBox", contentFrame)
-                    input.Size = UDim2.new(0,80,0,40)
-                    input.Position = UDim2.new(0,500,0,y)
-                    input.PlaceholderText = "z.B. 50"
+                    local input = Instance.new("TextBox", container)
+                    input.Size = UDim2.new(0,60,1,0)
+                    input.Position = UDim2.new(0.65,0,0,0)
+                    input.PlaceholderText = "50"
                     input.Text = ""
-                    input.TextScaled = true
+                    input.TextSize = 12
                     input.Font = Enum.Font.Gotham
                     input.BackgroundColor3 = Color3.fromRGB(70,65,130)
                     input.TextColor3 = Color3.fromRGB(255,255,255)
 
-                    local setBtn = Instance.new("TextButton", contentFrame)
-                    setBtn.Size = UDim2.new(0,80,0,40)
-                    setBtn.Position = UDim2.new(0,590,0,y)
+                    local setBtn = Instance.new("TextButton", container)
+                    setBtn.Size = UDim2.new(0,60,1,0)
+                    setBtn.Position = UDim2.new(0.8,0,0,0)
                     setBtn.Text = "Setzen"
                     setBtn.BackgroundColor3 = Color3.fromRGB(90,70,150)
                     setBtn.TextColor3 = Color3.fromRGB(255,255,255)
                     setBtn.Font = Enum.Font.GothamBold
-                    setBtn.TextScaled = true
+                    setBtn.TextSize = 12
 
                     setBtn.MouseButton1Click:Connect(function()
                         local val = tonumber(input.Text)
@@ -220,9 +235,8 @@ for i, tabName in ipairs(tabs) do
                             warn("⚠️ Kann Objekt nicht ändern:", obj.ClassName)
                         end
                     end)
-
-                    y = y + 50
                 end
+                scroll.CanvasSize = UDim2.new(0,0,0,#results * 30)
             end
         end
 
