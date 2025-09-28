@@ -118,10 +118,9 @@ local function clearContent()
     end
 end
 
--- Hilfsfunktion: Leaderstats suchen
+-- Hilfsfunktion: Leaderstats durchsuchen
 local function searchAllLeaderstats()
     local results = {}
-
     local function scan(obj)
         for _, child in ipairs(obj:GetChildren()) do
             if child:IsA("Folder") and child.Name == "leaderstats" then
@@ -131,6 +130,29 @@ local function searchAllLeaderstats()
                     entry = entry .. "\n   " .. stat.Name .. " = " .. tostring(stat.Value)
                 end
                 table.insert(results, entry)
+            end
+            scan(child)
+        end
+    end
+    scan(game)
+    return results
+end
+
+-- Hilfsfunktion: Day/Tag-Werte suchen
+local function searchForDayValues()
+    local results = {}
+    local keywords = {"day","tage","tag","night","survived"}
+
+    local function scan(obj)
+        for _, child in ipairs(obj:GetChildren()) do
+            for _, key in ipairs(keywords) do
+                if string.find(child.Name:lower(), key) then
+                    if child:IsA("IntValue") or child:IsA("NumberValue") or child:IsA("StringValue") then
+                        table.insert(results, child:GetFullName() .. " = " .. tostring(child.Value))
+                    elseif child:IsA("TextLabel") or child:IsA("TextButton") then
+                        table.insert(results, child:GetFullName() .. " (GUI Text) = " .. child.Text)
+                    end
+                end
             end
             scan(child)
         end
@@ -163,39 +185,10 @@ for i, tabName in ipairs(tabs) do
             label.Font = Enum.Font.GothamBold
             label.TextScaled = true
 
-            -- Eingabe für Tage
-            local dayLabel = Instance.new("TextLabel", contentFrame)
-            dayLabel.Size = UDim2.new(0,200,0,40)
-            dayLabel.Position = UDim2.new(0,20,0,80)
-            dayLabel.Text = "Tage überlebt setzen:"
-            dayLabel.TextColor3 = Color3.fromRGB(255,255,255)
-            dayLabel.Font = Enum.Font.Gotham
-            dayLabel.TextScaled = true
-            dayLabel.BackgroundTransparency = 1
-
-            local dayBox = Instance.new("TextBox", contentFrame)
-            dayBox.Size = UDim2.new(0,100,0,40)
-            dayBox.Position = UDim2.new(0,240,0,80)
-            dayBox.PlaceholderText = "z.B. 10"
-            dayBox.Text = ""
-            dayBox.TextScaled = true
-            dayBox.Font = Enum.Font.Gotham
-            dayBox.BackgroundColor3 = Color3.fromRGB(70,65,130)
-            dayBox.TextColor3 = Color3.fromRGB(255,255,255)
-
-            local setDayBtn = Instance.new("TextButton", contentFrame)
-            setDayBtn.Size = UDim2.new(0,120,0,40)
-            setDayBtn.Position = UDim2.new(0,360,0,80)
-            setDayBtn.Text = "Setzen"
-            setDayBtn.BackgroundColor3 = Color3.fromRGB(90,70,150)
-            setDayBtn.TextColor3 = Color3.fromRGB(255,255,255)
-            setDayBtn.Font = Enum.Font.GothamBold
-            setDayBtn.TextScaled = true
-
-            -- Leaderstats Anzeige Box
+            -- Leaderstats/Day Debug Box
             local debugBox = Instance.new("TextLabel", contentFrame)
-            debugBox.Size = UDim2.new(1,-40,0,180)
-            debugBox.Position = UDim2.new(0,20,0,140)
+            debugBox.Size = UDim2.new(1,-40,0,200)
+            debugBox.Position = UDim2.new(0,20,0,80)
             debugBox.Text = "Noch keine Suche durchgeführt..."
             debugBox.TextColor3 = Color3.fromRGB(255,255,255)
             debugBox.Font = Enum.Font.Code
@@ -204,10 +197,10 @@ for i, tabName in ipairs(tabs) do
             debugBox.TextXAlignment = Enum.TextXAlignment.Left
             debugBox.TextYAlignment = Enum.TextYAlignment.Top
 
-            -- Button: Alle Leaderstats suchen
+            -- Button: Alle Leaderstats durchsuchen
             local searchBtn = Instance.new("TextButton", contentFrame)
             searchBtn.Size = UDim2.new(0,260,0,40)
-            searchBtn.Position = UDim2.new(0,20,0,340)
+            searchBtn.Position = UDim2.new(0,20,0,300)
             searchBtn.Text = "Alle Leaderstats durchsuchen"
             searchBtn.BackgroundColor3 = Color3.fromRGB(100,80,160)
             searchBtn.TextColor3 = Color3.fromRGB(255,255,255)
@@ -225,28 +218,24 @@ for i, tabName in ipairs(tabs) do
                 end
             end)
 
-            -- Funktion zum Setzen
-            local currentDay = 1
-            setDayBtn.MouseButton1Click:Connect(function()
-                local newDay = tonumber(dayBox.Text)
-                if newDay and newDay > 0 then
-                    currentDay = newDay
-                    label.Text = "Tag " .. tostring(currentDay) .. " (gesetzt)"
+            -- Button: Day/Tag-Werte durchsuchen
+            local searchDayBtn = Instance.new("TextButton", contentFrame)
+            searchDayBtn.Size = UDim2.new(0,280,0,40)
+            searchDayBtn.Position = UDim2.new(0,20,0,350)
+            searchDayBtn.Text = "Nach Day/Tag-Werten suchen"
+            searchDayBtn.BackgroundColor3 = Color3.fromRGB(120,90,180)
+            searchDayBtn.TextColor3 = Color3.fromRGB(255,255,255)
+            searchDayBtn.Font = Enum.Font.Gotham
+            searchDayBtn.TextScaled = true
 
-                    local stats = player:FindFirstChild("leaderstats")
-                    if stats then
-                        local dayStat = stats:FindFirstChild("DaysSurvived") or stats:FindFirstChild("Day")
-                        if dayStat then
-                            dayStat.Value = currentDay
-                            print("✅ Tage geändert in leaderstats:", dayStat.Name, "=", currentDay)
-                        else
-                            print("⚠️ Kein 'Day' oder 'DaysSurvived' in leaderstats gefunden.")
-                        end
-                    else
-                        print("⚠️ Keine leaderstats bei deinem Spieler gefunden.")
-                    end
+            searchDayBtn.MouseButton1Click:Connect(function()
+                local found = searchForDayValues()
+                if #found > 0 then
+                    debugBox.Text = table.concat(found, "\n\n")
+                    print("🔎 Day/Tag-Werte gefunden:\n", table.concat(found, "\n\n"))
                 else
-                    label.Text = "Ungültige Eingabe!"
+                    debugBox.Text = "❌ Keine passenden Werte gefunden."
+                    print("❌ Keine passenden Werte gefunden.")
                 end
             end)
         end
