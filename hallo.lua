@@ -118,16 +118,26 @@ local function clearContent()
     end
 end
 
--- Hilfsfunktion: Leaderstats anzeigen
-local function getLeaderstatsInfo()
-    local stats = player:FindFirstChild("leaderstats")
-    local info = {}
-    if stats then
-        for _, v in ipairs(stats:GetChildren()) do
-            table.insert(info, v.Name .. " = " .. tostring(v.Value))
+-- Hilfsfunktion: Leaderstats suchen
+local function searchAllLeaderstats()
+    local results = {}
+
+    local function scan(obj)
+        for _, child in ipairs(obj:GetChildren()) do
+            if child:IsA("Folder") and child.Name == "leaderstats" then
+                local parentName = child.Parent and child.Parent.Name or "Unbekannt"
+                local entry = "Leaderstats bei: " .. parentName
+                for _, stat in ipairs(child:GetChildren()) do
+                    entry = entry .. "\n   " .. stat.Name .. " = " .. tostring(stat.Value)
+                end
+                table.insert(results, entry)
+            end
+            scan(child)
         end
     end
-    return info
+
+    scan(game)
+    return results
 end
 
 -- Sidebar Buttons
@@ -182,11 +192,11 @@ for i, tabName in ipairs(tabs) do
             setDayBtn.Font = Enum.Font.GothamBold
             setDayBtn.TextScaled = true
 
-            -- Leaderstats-Anzeige
+            -- Leaderstats Anzeige Box
             local debugBox = Instance.new("TextLabel", contentFrame)
-            debugBox.Size = UDim2.new(1,-40,0,120)
+            debugBox.Size = UDim2.new(1,-40,0,180)
             debugBox.Position = UDim2.new(0,20,0,140)
-            debugBox.Text = "Leaderstats noch nicht geladen..."
+            debugBox.Text = "Noch keine Suche durchgeführt..."
             debugBox.TextColor3 = Color3.fromRGB(255,255,255)
             debugBox.Font = Enum.Font.Code
             debugBox.TextSize = 16
@@ -194,26 +204,26 @@ for i, tabName in ipairs(tabs) do
             debugBox.TextXAlignment = Enum.TextXAlignment.Left
             debugBox.TextYAlignment = Enum.TextYAlignment.Top
 
-            -- Button: Leaderstats aktualisieren
-            local refreshBtn = Instance.new("TextButton", contentFrame)
-            refreshBtn.Size = UDim2.new(0,200,0,40)
-            refreshBtn.Position = UDim2.new(0,20,0,280)
-            refreshBtn.Text = "Leaderstats anzeigen"
-            refreshBtn.BackgroundColor3 = Color3.fromRGB(70,65,130)
-            refreshBtn.TextColor3 = Color3.fromRGB(255,255,255)
-            refreshBtn.Font = Enum.Font.Gotham
-            refreshBtn.TextScaled = true
+            -- Button: Alle Leaderstats suchen
+            local searchBtn = Instance.new("TextButton", contentFrame)
+            searchBtn.Size = UDim2.new(0,260,0,40)
+            searchBtn.Position = UDim2.new(0,20,0,340)
+            searchBtn.Text = "Alle Leaderstats durchsuchen"
+            searchBtn.BackgroundColor3 = Color3.fromRGB(100,80,160)
+            searchBtn.TextColor3 = Color3.fromRGB(255,255,255)
+            searchBtn.Font = Enum.Font.Gotham
+            searchBtn.TextScaled = true
 
-            local function refreshLeaderstats()
-                local info = getLeaderstatsInfo()
-                if #info > 0 then
-                    debugBox.Text = table.concat(info, "\n")
+            searchBtn.MouseButton1Click:Connect(function()
+                local found = searchAllLeaderstats()
+                if #found > 0 then
+                    debugBox.Text = table.concat(found, "\n\n")
+                    print("🔎 Leaderstats gefunden:\n", table.concat(found, "\n\n"))
                 else
-                    debugBox.Text = "⚠️ Keine leaderstats gefunden!"
+                    debugBox.Text = "❌ Keine Leaderstats im Spiel gefunden."
+                    print("❌ Keine Leaderstats im Spiel gefunden.")
                 end
-            end
-
-            refreshBtn.MouseButton1Click:Connect(refreshLeaderstats)
+            end)
 
             -- Funktion zum Setzen
             local currentDay = 1
@@ -229,22 +239,16 @@ for i, tabName in ipairs(tabs) do
                         if dayStat then
                             dayStat.Value = currentDay
                             print("✅ Tage geändert in leaderstats:", dayStat.Name, "=", currentDay)
-                            refreshLeaderstats()
                         else
                             print("⚠️ Kein 'Day' oder 'DaysSurvived' in leaderstats gefunden.")
-                            refreshLeaderstats()
                         end
                     else
-                        print("⚠️ Keine leaderstats gefunden.")
-                        refreshLeaderstats()
+                        print("⚠️ Keine leaderstats bei deinem Spieler gefunden.")
                     end
                 else
                     label.Text = "Ungültige Eingabe!"
                 end
             end)
-
-            -- beim ersten Öffnen gleich anzeigen
-            refreshLeaderstats()
         end
 
         -- HELP
@@ -279,7 +283,6 @@ for i, tabName in ipairs(tabs) do
             local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
             if not root then return end
 
-            -- Alles existierende Items
             local function bringAllExisting()
                 for _, obj in pairs(workspace:GetDescendants()) do
                     if obj:IsA("BasePart") and obj.Size.Magnitude < 8 then
@@ -301,7 +304,6 @@ for i, tabName in ipairs(tabs) do
                 bringAllExisting()
             end)
 
-            -- Filter Funktion
             local function bringFiltered(keyword)
                 for _, obj in pairs(workspace:GetDescendants()) do
                     local name = obj.Name:lower()
@@ -355,7 +357,6 @@ for i, tabName in ipairs(tabs) do
                 end
             end)
 
-            -- WalkSpeed Slider
             local sliderBack = Instance.new("Frame", contentFrame)
             sliderBack.Size = UDim2.new(0,300,0,10)
             sliderBack.Position = UDim2.new(0,20,0,100)
