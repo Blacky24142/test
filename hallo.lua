@@ -1,5 +1,4 @@
--- Roblox GUI ähnlich Discord Style (Voidware Style) komplett + ChestFarm + CurrencyCheck + Diamonds Debug
-
+-- Roblox GUI ähnlich Discord Style (Voidware Style) komplett + ChestFarm + CurrencyCheck + Diamonds Debug + 🕊️ Fly System
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local player = Players.LocalPlayer
@@ -22,7 +21,7 @@ local mainCorner = Instance.new("UICorner")
 mainCorner.CornerRadius = UDim.new(0, 12)
 mainCorner.Parent = mainFrame
 
--- Hotkey RightShift
+-- Hotkey RightShift (zum Öffnen/Schließen der GUI)
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
     if gameProcessed then return end
     if input.KeyCode == Enum.KeyCode.RightShift then
@@ -118,7 +117,7 @@ local function clearContent()
     end
 end
 
--- Suche Currency
+-- Currency / Diamond Funktionen
 local function searchForCurrency()
     local results = {}
     local keywords = {"coin","coins","gold","money","cash","gems","gem","diamond","diamonds"}
@@ -136,7 +135,6 @@ local function searchForCurrency()
     return results
 end
 
--- Suche Diamond RemoteEvents
 local function searchDiamondRemotes()
     local results = {}
     for _, obj in ipairs(game.ReplicatedStorage:GetDescendants()) do
@@ -150,7 +148,7 @@ local function searchDiamondRemotes()
     return results
 end
 
--- Sidebar Buttons
+-- Sidebar Buttons + Tab Logik
 for i, tabName in ipairs(tabs) do
     local tabButton = Instance.new("TextButton")
     tabButton.Size = UDim2.new(1,0,0,40)
@@ -177,7 +175,6 @@ for i, tabName in ipairs(tabs) do
             scroll.Size = UDim2.new(1,-20,0,350)
             scroll.Position = UDim2.new(0,10,0,50)
             scroll.BackgroundTransparency = 1
-            scroll.BorderSizePixel = 0
             scroll.ScrollBarThickness = 8
             scroll.CanvasSize = UDim2.new(0,0,0,0)
 
@@ -313,4 +310,138 @@ for i, tabName in ipairs(tabs) do
             end
         end
     end)
+end
+
+-------------------------------------------------------------
+-- 🕊️ Fly System hinzufügen
+-------------------------------------------------------------
+local flying = false
+local flySpeed = 50
+local bodyGyro, bodyVel
+
+local function toggleFly()
+    local char = player.Character
+    if not char or not char:FindFirstChild("HumanoidRootPart") then return end
+    local hrp = char.HumanoidRootPart
+
+    flying = not flying
+
+    if flying then
+        bodyGyro = Instance.new("BodyGyro", hrp)
+        bodyGyro.P = 9e4
+        bodyGyro.MaxTorque = Vector3.new(9e9, 9e9, 9e9)
+        bodyGyro.CFrame = hrp.CFrame
+
+        bodyVel = Instance.new("BodyVelocity", hrp)
+        bodyVel.Velocity = Vector3.zero
+        bodyVel.MaxForce = Vector3.new(9e9, 9e9, 9e9)
+
+        task.spawn(function()
+            while flying and task.wait() do
+                local cam = workspace.CurrentCamera
+                local moveDir = Vector3.zero
+
+                if UserInputService:IsKeyDown(Enum.KeyCode.W) then
+                    moveDir += cam.CFrame.LookVector
+                end
+                if UserInputService:IsKeyDown(Enum.KeyCode.S) then
+                    moveDir -= cam.CFrame.LookVector
+                end
+                if UserInputService:IsKeyDown(Enum.KeyCode.A) then
+                    moveDir -= cam.CFrame.RightVector
+                end
+                if UserInputService:IsKeyDown(Enum.KeyCode.D) then
+                    moveDir += cam.CFrame.RightVector
+                end
+                if UserInputService:IsKeyDown(Enum.KeyCode.Space) then
+                    moveDir += Vector3.new(0,1,0)
+                end
+                if UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then
+                    moveDir -= Vector3.new(0,1,0)
+                end
+
+                if moveDir.Magnitude > 0 then
+                    bodyVel.Velocity = moveDir.Unit * flySpeed
+                else
+                    bodyVel.Velocity = Vector3.zero
+                end
+
+                bodyGyro.CFrame = cam.CFrame
+            end
+        end)
+    else
+        if bodyGyro then bodyGyro:Destroy() end
+        if bodyVel then bodyVel:Destroy() end
+    end
+end
+
+-- Fly mit Taste "F" umschalten
+UserInputService.InputBegan:Connect(function(input, processed)
+    if processed then return end
+    if input.KeyCode == Enum.KeyCode.F then
+        toggleFly()
+    end
+end)
+
+-- Fly-Tab in GUI integrieren
+for _, button in ipairs(sidebar:GetChildren()) do
+    if button:IsA("TextButton") and button.Text == "Local" then
+        button.MouseButton1Click:Connect(function()
+            clearContent()
+
+            local label = Instance.new("TextLabel", contentFrame)
+            label.Size = UDim2.new(1,0,0,40)
+            label.Text = "🕊️ Fly Steuerung"
+            label.TextColor3 = Color3.fromRGB(255,255,255)
+            label.BackgroundTransparency = 1
+            label.Font = Enum.Font.GothamBold
+            label.TextScaled = true
+
+            local info = Instance.new("TextLabel", contentFrame)
+            info.Size = UDim2.new(1,-20,0,30)
+            info.Position = UDim2.new(0,10,0,50)
+            info.Text = "Drücke [F] um zu fliegen. Space/Shift für hoch/runter."
+            info.TextColor3 = Color3.fromRGB(200,200,255)
+            info.BackgroundTransparency = 1
+            info.Font = Enum.Font.Gotham
+            info.TextScaled = true
+
+            local speedLabel = Instance.new("TextLabel", contentFrame)
+            speedLabel.Size = UDim2.new(0,200,0,30)
+            speedLabel.Position = UDim2.new(0,10,0,100)
+            speedLabel.Text = "Speed: " .. flySpeed
+            speedLabel.TextColor3 = Color3.fromRGB(255,255,255)
+            speedLabel.BackgroundTransparency = 1
+            speedLabel.Font = Enum.Font.GothamBold
+            speedLabel.TextScaled = true
+
+            local increase = Instance.new("TextButton", contentFrame)
+            increase.Size = UDim2.new(0,80,0,40)
+            increase.Position = UDim2.new(0,220,0,95)
+            increase.Text = "+ Speed"
+            increase.BackgroundColor3 = Color3.fromRGB(80,120,180)
+            increase.TextColor3 = Color3.fromRGB(255,255,255)
+            increase.Font = Enum.Font.GothamBold
+            increase.TextScaled = true
+            increase.MouseButton1Click:Connect(function()
+                flySpeed += 10
+                if flySpeed > 300 then flySpeed = 300 end
+                speedLabel.Text = "Speed: " .. flySpeed
+            end)
+
+            local decrease = Instance.new("TextButton", contentFrame)
+            decrease.Size = UDim2.new(0,80,0,40)
+            decrease.Position = UDim2.new(0,310,0,95)
+            decrease.Text = "- Speed"
+            decrease.BackgroundColor3 = Color3.fromRGB(150,80,80)
+            decrease.TextColor3 = Color3.fromRGB(255,255,255)
+            decrease.Font = Enum.Font.GothamBold
+            decrease.TextScaled = true
+            decrease.MouseButton1Click:Connect(function()
+                flySpeed -= 10
+                if flySpeed < 10 then flySpeed = 10 end
+                speedLabel.Text = "Speed: " .. flySpeed
+            end)
+        end)
+    end
 end
