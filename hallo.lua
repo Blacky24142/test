@@ -87,7 +87,7 @@ local Theme = {
         stroke = Color3.fromRGB(190,160,255), glowWhite = Color3.fromRGB(255,255,255)
     }
 }
-local currentTheme = "lilac"
+local currentTheme = "lilacDark"
 local function C(k) return Theme[currentTheme][k] end
 
 -- Small blur for glass look (only one)
@@ -201,7 +201,7 @@ create("UICorner",{CornerRadius=UDim.new(0,14)}, sidebar)
 
 -- Profile Footer
 local profileFrame = create("Frame", { Size = UDim2.new(1,0,0,84), Position = UDim2.new(0,0,1,-84), BackgroundColor3 = C("card") }, sidebar)
-create("UICorner",{CornerRadius=UDim.New(0,12)}, profileFrame)
+create("UICorner",{CornerRadius=UDim.new(0,12)}, profileFrame)
 local thumb = (function()
     local ok, img = pcall(function()
         return Players:GetUserThumbnailAsync(player.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size100x100)
@@ -218,7 +218,8 @@ create("UICorner",{CornerRadius=UDim.new(0,14)}, contentFrame)
 local contentGlow = create("Frame", { AnchorPoint=Vector2.new(0.5,0.5), Position=UDim2.fromScale(0.5,0.1), Size = UDim2.new(0.8,0,0,80), BackgroundColor3 = C("glowWhite"), BackgroundTransparency = 0.85, BorderSizePixel=0, Parent = contentFrame })
 create("UICorner",{CornerRadius=UDim.new(0,40)}, contentGlow)
 create("UIGradient", { Color = ColorSequence.new(Color3.new(1,1,1), Color3.new(1,1,1)), Transparency = NumberSequence.new{ NumberSequenceKeypoint.new(0,0.4), NumberSequenceKeypoint.new(1,1) }, Rotation = 0 }, contentGlow)
-
+contentGlow.ZIndex = 0
+contentGlow.BackgroundTransparency = 0.92
 local function clearContent()
     for _,c in ipairs(contentFrame:GetChildren()) do
         if not c:IsA("UIListLayout") and c ~= contentGlow then c:Destroy() end
