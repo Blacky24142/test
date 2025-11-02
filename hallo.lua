@@ -100,12 +100,12 @@ local blur = create("BlurEffect", {Name="VoidwareLuminousBlur", Size=8}, Lightin
 -- Default: alles gesperrt (weil du gesagt hast: Berechtigung kommt später).
 -- Sobald ein Player-Attribut gesetzt wird (true), wird das Feature erlaubt.
 local DefaultPermissions = {
-    CanFly = false,
-    CanTeleport = false,
-    CanESP = false,
-    CanUtility = false,
-    CanInspectCurrency = false,
-    CanDebugDiamonds = false,
+    CanFly = true,
+    CanTeleport =  true,
+    CanESP = true,
+    CanUtility = true,
+    CanInspectCurrency = true,
+    CanDebugDiamonds = true,
 }
 
 local function Allowed(feature)
