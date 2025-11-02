@@ -1,5 +1,4 @@
--- Voidware Luminous UI (angepasst: Feature-Gates, moderne Optik, Fly+Speed, Teleport, ESP, Utility, Currency, Diamonds)
--- Achtung: Features standardmäßig GESPERRT. Berechtigungen können später per Player-Attribute oder serverseitigem Script gesetzt werden.
+-- Voidware Luminous UI (Feature-Gates, moderne Optik, Fly+Speed, Teleport, ESP, Utility, Currency, Diamonds)
 
 --// Services
 local Players = game:GetService("Players")
@@ -30,7 +29,7 @@ local function notify(txt)
     end)
 end
 
--- Basic vector-like icons built from Frames (white)
+-- weiße Vektor-Icons (Frames)
 local function makeIcon_Close(parent, size)
     local holder = create("Frame", { Size = size or UDim2.fromOffset(20,20), BackgroundTransparency = 1 }, parent)
     local function line(rot)
@@ -90,31 +89,26 @@ local Theme = {
 local currentTheme = "lilacDark"
 local function C(k) return Theme[currentTheme][k] end
 
--- Small blur for glass look (only one)
+-- Glass-Blur (einzigartig)
 for _,e in ipairs(Lighting:GetChildren()) do
     if e:IsA("BlurEffect") and e.Name == "VoidwareLuminousBlur" then e:Destroy() end
 end
 local blur = create("BlurEffect", {Name="VoidwareLuminousBlur", Size=8}, Lighting)
 
---// Permission gating
--- Default: alles gesperrt (weil du gesagt hast: Berechtigung kommt später).
--- Sobald ein Player-Attribut gesetzt wird (true), wird das Feature erlaubt.
+--// Permission gating (Default = alles AN für Tests)
 local DefaultPermissions = {
     CanFly = true,
-    CanTeleport =  true,
+    CanTeleport = true,
     CanESP = true,
     CanUtility = true,
     CanInspectCurrency = true,
     CanDebugDiamonds = true,
 }
 
+-- WICHTIG: Nur ein echtes true-Attribut überschreibt. false/nil -> DefaultPermissions.
 local function Allowed(feature)
-    -- 1) Attribut auf dem Player hat Vorrang (Server kann das setzen)
     local attr = player:GetAttribute(feature)
-    if attr ~= nil then
-        return attr == true
-    end
-    -- 2) Fallback auf DefaultPermissions
+    if attr == true then return true end
     return DefaultPermissions[feature] == true
 end
 
@@ -126,25 +120,40 @@ local mainFrame = create("Frame", { Size = UDim2.fromOffset(940, 600), Position 
 create("UICorner", {CornerRadius = UDim.new(0,18)}, mainFrame)
 local mainStroke = create("UIStroke", {Thickness=2, ApplyStrokeMode=Enum.ApplyStrokeMode.Border, Color=C("stroke")}, mainFrame)
 
--- Inner Neon Glow
+-- Inner Neon Glow (entschärft)
 local innerGlow = create("Frame", { AnchorPoint = Vector2.new(0.5,0.5), Position = UDim2.fromScale(0.5,0.5), Size = UDim2.new(0.9,0,0.9,0), BackgroundColor3 = C("glowWhite"), BackgroundTransparency = 0.9, BorderSizePixel = 0 }, mainFrame)
 create("UICorner", {CornerRadius=UDim.new(0,16)}, innerGlow)
-local glowGrad = create("UIGradient", { Color = ColorSequence.new{ ColorSequenceKeypoint.new(0.0, Color3.fromRGB(255,255,255)), ColorSequenceKeypoint.new(0.25, Color3.fromRGB(255,255,255)), ColorSequenceKeypoint.new(1.0, Color3.fromRGB(255,255,255)) }, Transparency = NumberSequence.new{ NumberSequenceKeypoint.new(0.0, 0.3), NumberSequenceKeypoint.new(0.6, 0.78), NumberSequenceKeypoint.new(1.0, 1.0) }, Rotation = 0 }, innerGlow)
+local glowGrad = create("UIGradient", {
+    Color = ColorSequence.new{
+        ColorSequenceKeypoint.new(0.0, Color3.fromRGB(255,255,255)),
+        ColorSequenceKeypoint.new(0.25, Color3.fromRGB(255,255,255)),
+        ColorSequenceKeypoint.new(1.0, Color3.fromRGB(255,255,255))
+    },
+    Transparency = NumberSequence.new{
+        NumberSequenceKeypoint.new(0.0, 0.3),
+        NumberSequenceKeypoint.new(0.6, 0.78),
+        NumberSequenceKeypoint.new(1.0, 1.0)
+    },
+    Rotation = 0
+}, innerGlow)
 
--- subtle pulse
 task.spawn(function()
     local t = 0
     while innerGlow.Parent do
         t += RunService.Heartbeat:Wait()
         local alpha = 0.25 + 0.05*math.sin(t*1.2)
-        glowGrad.Transparency = NumberSequence.new{ NumberSequenceKeypoint.new(0.0, alpha), NumberSequenceKeypoint.new(0.6, math.clamp(alpha+0.45,0,1)), NumberSequenceKeypoint.new(1.0, 1.0) }
+        glowGrad.Transparency = NumberSequence.new{
+            NumberSequenceKeypoint.new(0.0, alpha),
+            NumberSequenceKeypoint.new(0.6, math.clamp(alpha+0.45,0,1)),
+            NumberSequenceKeypoint.new(1.0, 1.0)
+        }
     end
 end)
 
 -- Header (draggable)
 local header = create("Frame", { Size = UDim2.new(1,0,0,64), BackgroundColor3 = C("card") }, mainFrame)
 create("UICorner",{CornerRadius=UDim.new(0,16)}, header)
-local headGrad = create("UIGradient", { Color = ColorSequence.new{ ColorSequenceKeypoint.new(0, Color3.fromRGB(220,210,255)), ColorSequenceKeypoint.new(1, Color3.fromRGB(210,200,255)) }, Rotation = 90 }, header)
+create("UIGradient", { Color = ColorSequence.new{ ColorSequenceKeypoint.new(0, Color3.fromRGB(220,210,255)), ColorSequenceKeypoint.new(1, Color3.fromRGB(210,200,255)) }, Rotation = 90 }, header)
 local title = create("TextLabel", { Size = UDim2.new(1,-180,1,0), Position = UDim2.new(0,18,0,0), Text = "Voidware • Luminous", Font = Enum.Font.GothamBold, TextScaled = true, TextXAlignment = Enum.TextXAlignment.Left, TextColor3 = C("text"), BackgroundTransparency = 1 }, header)
 
 local themeBtn = create("TextButton", { Size = UDim2.new(0,44,0,44), Position = UDim2.new(1,-110,0.5,-22), BackgroundTransparency = 1, Text = "" }, header)
@@ -173,7 +182,7 @@ task.spawn(function()
     end
 end)
 
--- Window Dragging
+-- Drag
 do
     local dragging = false
     local dragStart, startPos
@@ -198,6 +207,9 @@ end
 -- Sidebar
 local sidebar = create("Frame", { Size = UDim2.new(0,220,1,-72), Position = UDim2.new(0,0,0,72), BackgroundColor3 = C("side") }, mainFrame)
 create("UICorner",{CornerRadius=UDim.new(0,14)}, sidebar)
+if currentTheme == "lilacDark" then
+    sidebar.BackgroundColor3 = Color3.fromRGB(36,30,60)
+end
 
 -- Profile Footer
 local profileFrame = create("Frame", { Size = UDim2.new(1,0,0,84), Position = UDim2.new(0,0,1,-84), BackgroundColor3 = C("card") }, sidebar)
@@ -208,18 +220,18 @@ local thumb = (function()
     end)
     return ok and img or "rbxassetid://0"
 end)()
-local avatar = create("ImageLabel", { Size = UDim2.new(0,56,0,56), Position = UDim2.new(0,14,0.5,-28), Image = thumb, BackgroundTransparency = 1 }, profileFrame)
+create("ImageLabel", { Size = UDim2.new(0,56,0,56), Position = UDim2.new(0,14,0.5,-28), Image = thumb, BackgroundTransparency = 1 }, profileFrame)
 local nameLabel = create("TextLabel", { Size = UDim2.new(1,-90,1,0), Position = UDim2.new(0,80,0,0), Text = player.Name .. "\n@" .. player.UserId, TextColor3 = C("subtext"), Font = Enum.Font.Gotham, TextScaled = true, TextXAlignment = Enum.TextXAlignment.Left, BackgroundTransparency = 1 }, profileFrame)
 
 -- Content
 local contentFrame = create("Frame", { Size = UDim2.new(1,-230,1,-72), Position = UDim2.new(0,230,0,72), BackgroundColor3 = C("card") }, mainFrame)
 create("UICorner",{CornerRadius=UDim.new(0,14)}, contentFrame)
 
-local contentGlow = create("Frame", { AnchorPoint=Vector2.new(0.5,0.5), Position=UDim2.fromScale(0.5,0.1), Size = UDim2.new(0.8,0,0,80), BackgroundColor3 = C("glowWhite"), BackgroundTransparency = 0.85, BorderSizePixel=0, Parent = contentFrame })
+local contentGlow = create("Frame", { AnchorPoint=Vector2.new(0.5,0.5), Position=UDim2.fromScale(0.5,0.1), Size = UDim2.new(0.8,0,0,80), BackgroundColor3 = C("glowWhite"), BackgroundTransparency = 0.92, BorderSizePixel=0, Parent = contentFrame })
 create("UICorner",{CornerRadius=UDim.new(0,40)}, contentGlow)
 create("UIGradient", { Color = ColorSequence.new(Color3.new(1,1,1), Color3.new(1,1,1)), Transparency = NumberSequence.new{ NumberSequenceKeypoint.new(0,0.4), NumberSequenceKeypoint.new(1,1) }, Rotation = 0 }, contentGlow)
 contentGlow.ZIndex = 0
-contentGlow.BackgroundTransparency = 0.92
+
 local function clearContent()
     for _,c in ipairs(contentFrame:GetChildren()) do
         if not c:IsA("UIListLayout") and c ~= contentGlow then c:Destroy() end
@@ -255,7 +267,18 @@ end
 
 local tabButtons = {}
 local function makeTabButton(name, index)
-    local btn = create("TextButton", { Size = UDim2.new(1,0,0,44), Position = UDim2.new(0,0,0,(index-1)*48), Text = name, TextColor3 = C("text"), BackgroundColor3 = Color3.fromRGB(210,200,255), BackgroundTransparency = 0.2, Font = Enum.Font.GothamBold, TextScaled = true, AutoButtonColor = false, Parent = sidebar })
+    local btn = create("TextButton", {
+        Size = UDim2.new(1,0,0,44),
+        Position = UDim2.new(0,0,0,(index-1)*48),
+        Text = name,
+        TextColor3 = C("text"),
+        BackgroundColor3 = Color3.fromRGB(210,200,255),
+        BackgroundTransparency = 0.2,
+        Font = Enum.Font.GothamBold,
+        TextScaled = true,
+        AutoButtonColor = false,
+        Parent = sidebar
+    })
     create("UICorner",{CornerRadius=UDim.new(0,10)}, btn)
     create("UIStroke",{Thickness=1, Color=C("accent"), Transparency=0.5}, btn)
     btn.MouseEnter:Connect(function() TweenService:Create(btn, TweenInfo.new(0.2), {BackgroundTransparency=0}):Play() end)
@@ -273,13 +296,14 @@ local function applyTheme()
     mainFrame.BackgroundColor3 = C("bg")
     mainStroke.Color = C("stroke")
     header.BackgroundColor3 = C("card")
-    sidebar.BackgroundColor3 = C("side")
+    sidebar.BackgroundColor3 = currentTheme=="lilacDark" and Color3.fromRGB(36,30,60) or C("side")
     profileFrame.BackgroundColor3 = C("card")
     contentFrame.BackgroundColor3 = C("card")
     title.TextColor3 = C("text")
     nameLabel.TextColor3 = C("subtext")
     fpsLabel.TextColor3 = C("success")
     clock.TextColor3 = C("subtext")
+    for _,btn in pairs(tabButtons) do if btn and btn:IsA("TextButton") then btn.TextColor3 = C("text") end end
 end
 themeBtn.MouseButton1Click:Connect(function()
     currentTheme = (currentTheme == "lilac") and "lilacDark" or "lilac"
@@ -292,9 +316,9 @@ applyTheme()
 ----------------------------------------------------------------
 -- STATUS HUD
 ----------------------------------------------------------------
-local statusFrame = create("Frame", { Size = UDim2.new(0,280,0,44), Position = UDim2.new(1,-300,1,-60), BackgroundColor3 = Color3.fromRGB(230,225,255), BackgroundTransparency = 0.15, Parent = screenGui })
+local statusFrame = create("Frame", { Size = UDim2.new(0,300,0,44), Position = UDim2.new(1,-320,1,-60), BackgroundColor3 = Color3.fromRGB(230,225,255), BackgroundTransparency = 0.15, Parent = screenGui })
 create("UICorner",{CornerRadius=UDim.new(0,12)}, statusFrame)
-local statusText = create("TextLabel", { Size = UDim2.new(1,0,1,0), Text = "✅ Voidware Luminous geladen – Bereit (Features gesperrt)", Font = Enum.Font.GothamBold, TextScaled = true, TextColor3 = Color3.fromRGB(90,80,150), BackgroundTransparency = 1, Parent = statusFrame })
+local statusText = create("TextLabel", { Size = UDim2.new(1,0,1,0), Text = "✅ Voidware Luminous geladen – bereit", Font = Enum.Font.GothamBold, TextScaled = true, TextColor3 = Color3.fromRGB(90,80,150), BackgroundTransparency = 1, Parent = statusFrame })
 statusFrame.BackgroundTransparency = 1; statusText.TextTransparency = 1
 TweenService:Create(statusFrame, TweenInfo.new(0.8, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundTransparency = 0.15}):Play()
 TweenService:Create(statusText, TweenInfo.new(0.8, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {TextTransparency = 0}):Play()
@@ -308,7 +332,7 @@ task.delay(7, function()
 end)
 
 ----------------------------------------------------------------
--- UI Helpers (Titles, labels, buttons, sliders)
+-- UI Helpers
 ----------------------------------------------------------------
 local function sectionTitle(text, parent, y)
     return create("TextLabel", { Size = UDim2.new(1,-24,0,42), Position = UDim2.new(0,12,0,y or 12), Text = text, Font = Enum.Font.GothamBold, TextScaled = true, TextColor3 = C("text"), BackgroundTransparency = 1, Parent = parent })
@@ -341,7 +365,6 @@ local function slider(titleText, min, max, getVal, setVal, parent, y)
             local rel = math.clamp((io.Position.X - container.AbsolutePosition.X)/container.AbsoluteSize.X, 0, 1)
             local value = math.floor(min + rel*(max-min))
             fill.Size = UDim2.new(rel,0,1,0)
-            -- Gate slider write with Allowed if needed (e.g. fly speed)
             pcall(function() setVal(value) end)
             valueLbl.Text = tostring(value)
         end
@@ -349,7 +372,7 @@ local function slider(titleText, min, max, getVal, setVal, parent, y)
 end
 
 ----------------------------------------------------------------
--- FLY SYSTEM (implementiert, aber nur nutzbar wenn Allowed("CanFly") == true)
+-- FLY SYSTEM
 ----------------------------------------------------------------
 local flying, flySpeed = false, 90
 local bodyGyro, bodyVel
@@ -384,7 +407,6 @@ local function setFly(active)
     end
 end
 
--- Keybind wrapper that enforces permission
 local function tryToggleFly()
     if not Allowed("CanFly") then
         notify("Fly ist noch gesperrt (Berechtigung fehlt).")
@@ -401,32 +423,38 @@ UserInputService.InputBegan:Connect(function(input, gpe)
 end)
 
 ----------------------------------------------------------------
--- TAB: Main
+-- TABS: Main
 ----------------------------------------------------------------
-tabButtons["Main"]:GetPropertyChangedSignal("Parent"):Connect(function() end) -- noop to avoid lint issues if not used
+local function showMain()
+    clearContent()
+    sectionTitle("✨ Willkommen zu Voidware Luminous", contentFrame, 16)
+    label("RightShift: GUI an/aus • F: Fly (falls freigeschaltet) • Sonne/Mond: Theme", contentFrame, UDim2.new(0,12,0,62))
+    label("Tabs links: Local, Teleport, ESP, Utility, Currency, Diamonds, Help", contentFrame, UDim2.new(0,12,0,92))
+end
 
 if tabButtons["Main"] then
     tabButtons["Main"].MouseButton1Click:Connect(function()
-        clearContent()
-        sectionTitle("✨ Willkommen zu Voidware Luminous", contentFrame, 16)
-        label("RightShift: GUI an/aus • F: Fly (falls freigeschaltet) • Sonne/Mond: Theme", contentFrame, UDim2.new(0,12,0,62))
-        label("Tabs links: Local, Teleport, ESP, Utility, Currency, Diamonds, Help (sichtbar wenn freigeschaltet)", contentFrame, UDim2.new(0,12,0,92))
+        showMain()
     end)
 end
 
 ----------------------------------------------------------------
--- Build Local Tab (Fly + Speed) — nur sichtbar wenn Allowed("CanFly")
+-- Local (Fly + Speed)
 ----------------------------------------------------------------
 if tabButtons["Local"] then
     tabButtons["Local"].MouseButton1Click:Connect(function()
         clearContent()
         sectionTitle("🕊️ Fly System", contentFrame, 16)
         label("F: Ein/Aus • Space/Shift: Hoch/Runter", contentFrame, UDim2.new(0,12,0,60))
-        slider("Speed", 10, 300, function() return flySpeed end, function(v)
-            if not Allowed("CanFly") then notify("Keine Berechtigung zum Ändern der Fly-Geschwindigkeit.") return end
-            flySpeed = v
-        end, contentFrame, 96)
-        local toggleBtn = button((flying and "Fly AUS") or "Fly AN", contentFrame, UDim2.new(0,12,0,146), UDim2.new(0,140,0,36), C("accent"), function(b)
+        slider("Speed", 10, 300,
+            function() return flySpeed end,
+            function(v)
+                if not Allowed("CanFly") then notify("Keine Berechtigung zum Ändern der Fly-Geschwindigkeit.") return end
+                flySpeed = v
+            end,
+            contentFrame, 96
+        )
+        button((flying and "Fly AUS") or "Fly AN", contentFrame, UDim2.new(0,12,0,146), UDim2.new(0,140,0,36), C("accent"), function(b)
             if not Allowed("CanFly") then notify("Fly ist gesperrt.") return end
             setFly(not flying)
             b.Text = (flying and "Fly AUS") or "Fly AN"
@@ -435,7 +463,7 @@ if tabButtons["Local"] then
 end
 
 ----------------------------------------------------------------
--- TAB: Teleport (sichtbar nur wenn Allowed("CanTeleport"))
+-- Teleport
 ----------------------------------------------------------------
 local function listPlayers(scroll)
     for _,c in ipairs(scroll:GetChildren()) do if c:IsA("Frame") then c:Destroy() end end
@@ -473,7 +501,7 @@ if tabButtons["Teleport"] then
 end
 
 ----------------------------------------------------------------
--- TAB: ESP (Highlight) — gated by CanESP
+-- ESP
 ----------------------------------------------------------------
 local espEnabled = false
 local espMap = {}
@@ -509,7 +537,7 @@ if tabButtons["ESP"] then
             label("ESP ist aktuell gesperrt. Bitte warte auf Freischaltung.", contentFrame, UDim2.new(0,12,0,60))
             return
         end
-        local masterBtn = button(espEnabled and "Master: ON" or "Master: OFF", contentFrame, UDim2.new(0,12,0,60), UDim2.new(0,170,0,36), C("accent"), function(b)
+        button(espEnabled and "Master: ON" or "Master: OFF", contentFrame, UDim2.new(0,12,0,60), UDim2.new(0,170,0,36), C("accent"), function(b)
             setESP(not espEnabled)
             b.Text = espEnabled and "Master: ON" or "Master: OFF"
         end)
@@ -533,7 +561,7 @@ if tabButtons["ESP"] then
 end
 
 ----------------------------------------------------------------
--- TAB: Utility (WS/JP/Noclip/Freecam) — gated by CanUtility
+-- Utility (WS/JP/Noclip/Freecam)
 ----------------------------------------------------------------
 local noclip = false
 local noclipConn
@@ -607,7 +635,7 @@ if tabButtons["Utility"] then
 end
 
 ----------------------------------------------------------------
--- TAB: CurrencyCheck (scan nach 'coin/gem/diamond' etc.) — gated
+-- CurrencyCheck
 ----------------------------------------------------------------
 local function searchForCurrency()
     local results, keys = {}, {"coin","coins","gold","money","cash","gems","gem","diamond","diamonds"}
@@ -654,7 +682,7 @@ if tabButtons["CurrencyCheck"] then
 end
 
 ----------------------------------------------------------------
--- TAB: Diamonds Debug (suche Remotes) — gated
+-- Diamonds Debug
 ----------------------------------------------------------------
 local function searchDiamondRemotes()
     local res = {}
@@ -700,7 +728,7 @@ if tabButtons["Diamonds Debug"] then
 end
 
 ----------------------------------------------------------------
--- TAB: Help
+-- Help
 ----------------------------------------------------------------
 if tabButtons["Help"] then
     tabButtons["Help"].MouseButton1Click:Connect(function()
@@ -713,24 +741,16 @@ if tabButtons["Help"] then
     end)
 end
 
--- Open default tab (Main)
+-- Start: sicher Main anzeigen (ohne :Fire auf Events)
 if tabButtons["Main"] then
-    tabButtons["Main"]:Activate()
-    tabButtons["Main"].MouseButton1Click:Fire()
+    showMain()
 end
 
-print("✅ Voidware Luminous UI geladen (Features gesperrt until attributes set).")
+print("✅ Voidware Luminous UI geladen (DefaultPermissions aktiv; Attribute=true überschreibt).")
 
--- Optional: Beispiel-Server-Skript (ServerScriptService) um Berechtigungen später zu setzen:
+-- OPTIONAL (nur für lokale Tests – auskommentieren entfernen, wenn gewünscht):
 --[[
-game.Players.PlayerAdded:Connect(function(plr)
-    -- Beispiel: setze alle Features frei für Tests
-    -- plr:SetAttribute("CanFly", true)
-    -- plr:SetAttribute("CanTeleport", true)
-    -- plr:SetAttribute("CanESP", true)
-    -- plr:SetAttribute("CanUtility", true)
-    -- plr:SetAttribute("CanInspectCurrency", true)
-    -- plr:SetAttribute("CanDebugDiamonds", true)
-end)
+for _,k in ipairs({"CanFly","CanTeleport","CanESP","CanUtility","CanInspectCurrency","CanDebugDiamonds"}) do
+    player:SetAttribute(k, true)
+end
 ]]
-
