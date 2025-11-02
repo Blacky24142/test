@@ -1,4 +1,4 @@
--- Voidware Luminous UI (Feature-Gates, moderne Optik, Fly+Speed, Teleport, ESP, Utility, Currency, Diamonds)
+-- Voidware Luminous UI (Feature-Gates, moderne Optik, Fly+Speed, Teleport, ESP, Utility, Currency, Diamonds, Client Log)
 
 --// Services
 local Players = game:GetService("Players")
@@ -8,6 +8,7 @@ local TweenService = game:GetService("TweenService")
 local Lighting = game:GetService("Lighting")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local StarterGui = game:GetService("StarterGui")
+local Workspace = game:GetService("Workspace")
 
 local player = Players.LocalPlayer
 
@@ -103,6 +104,7 @@ local DefaultPermissions = {
     CanUtility = true,
     CanInspectCurrency = true,
     CanDebugDiamonds = true,
+    CanClientLog = true, -- ✨ NEU: Client-Log Tab erlaubt
 }
 
 -- WICHTIG: Nur ein echtes true-Attribut überschreibt. false/nil -> DefaultPermissions.
@@ -256,6 +258,7 @@ local allTabs = {
     {name="Utility", key="CanUtility"},
     {name="CurrencyCheck", key="CanInspectCurrency"},
     {name="Diamonds Debug", key="CanDebugDiamonds"},
+    {name="Client Log", key="CanClientLog"}, -- ✨ NEU
     {name="Help", key=nil},
 }
 local tabs = {}
@@ -429,7 +432,7 @@ local function showMain()
     clearContent()
     sectionTitle("✨ Willkommen zu Voidware Luminous", contentFrame, 16)
     label("RightShift: GUI an/aus • F: Fly (falls freigeschaltet) • Sonne/Mond: Theme", contentFrame, UDim2.new(0,12,0,62))
-    label("Tabs links: Local, Teleport, ESP, Utility, Currency, Diamonds, Help", contentFrame, UDim2.new(0,12,0,92))
+    label("Tabs links: Local, Teleport, ESP, Utility, Currency, Diamonds, Client Log, Help", contentFrame, UDim2.new(0,12,0,92))
 end
 
 if tabButtons["Main"] then
@@ -728,6 +731,58 @@ if tabButtons["Diamonds Debug"] then
 end
 
 ----------------------------------------------------------------
+-- ✨ Client Log (Replicated/Workspace-Objekte)
+----------------------------------------------------------------
+local function buildClientLog()
+    local lines = {}
+    local function add(prefix, obj)
+        table.insert(lines, prefix .. obj:GetFullName() .. " [" .. obj.ClassName .. "]")
+    end
+    -- ReplicatedStorage
+    for _,o in ipairs(ReplicatedStorage:GetDescendants()) do add("[ReplicatedStorage] ", o) end
+    -- Workspace
+    for _,o in ipairs(Workspace:GetDescendants()) do add("[Workspace] ", o) end
+    return lines
+end
+
+if tabButtons["Client Log"] then
+    tabButtons["Client Log"].MouseButton1Click:Connect(function()
+        clearContent()
+        sectionTitle("📜 Client Item Log", contentFrame, 16)
+        if not Allowed("CanClientLog") then
+            label("Client-Log ist gesperrt. Bitte warte auf Freischaltung.", contentFrame, UDim2.new(0,12,0,60))
+            return
+        end
+        label("Listet alle Objekte auf, die der Client sieht (ReplicatedStorage & Workspace).", contentFrame, UDim2.new(0,12,0,56))
+
+        local scroll = create("ScrollingFrame", { Size=UDim2.new(1,-24,1,-110), Position=UDim2.new(0,12,0,96), BackgroundTransparency=1, ScrollBarThickness=6, CanvasSize=UDim2.new(0,0,0,0), Parent=contentFrame })
+        local results = {}
+        local function refresh()
+            for _,c in ipairs(scroll:GetChildren()) do if c:IsA("TextLabel") or c:IsA("Frame") then c:Destroy() end end
+            results = buildClientLog()
+            local y=0
+            if #results == 0 then
+                label("(leer)", scroll, UDim2.new(0,10,0,0), UDim2.new(1,-20,0,24), Theme.lilacDark.danger)
+            else
+                for _,line in ipairs(results) do
+                    label("• "..line, scroll, UDim2.new(0,10,0,y), UDim2.new(1,-20,0,22), C("subtext"))
+                    y = y + 24
+                end
+                scroll.CanvasSize = UDim2.new(0,0,0,y+10)
+            end
+        end
+
+        button("Refresh", contentFrame, UDim2.new(1,-132,0,16), UDim2.new(0,120,0,32), C("warn"), function() refresh(); notify("Client-Log aktualisiert") end)
+        button("Alles kopieren", contentFrame, UDim2.new(1,-282,0,16), UDim2.new(0,150,0,32), C("accent"), function()
+            local out = table.concat(results, "\n")
+            if setclipboard then setclipboard(out); notify("In Zwischenablage kopiert.") else warn("setclipboard nicht verfügbar") end
+        end)
+
+        refresh()
+    end)
+end
+
+----------------------------------------------------------------
 -- Help
 ----------------------------------------------------------------
 if tabButtons["Help"] then
@@ -750,7 +805,7 @@ print("✅ Voidware Luminous UI geladen (DefaultPermissions aktiv; Attribute=tru
 
 -- OPTIONAL (nur für lokale Tests – auskommentieren entfernen, wenn gewünscht):
 --[[
-for _,k in ipairs({"CanFly","CanTeleport","CanESP","CanUtility","CanInspectCurrency","CanDebugDiamonds"}) do
+for _,k in ipairs({"CanFly","CanTeleport","CanESP","CanUtility","CanInspectCurrency","CanDebugDiamonds","CanClientLog"}) do
     player:SetAttribute(k, true)
 end
 ]]
