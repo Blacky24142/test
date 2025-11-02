@@ -186,7 +186,7 @@ for _,e in ipairs(Lighting:GetChildren()) do if e:IsA("BlurEffect") and e.Name==
 local blur = create("BlurEffect", {Name="LuminousBlur", Size=8}, Lighting)
 
 -- Root GUI (wird erst angezeigt, wenn AdminAuth kommt)
-local screenGui = create("ScreenGui", {Name="VoidwareAdmin", ResetOnSpawn=false, Enabled=false, ZIndexBehavior=Enum.ZIndexBehavior.Global}, player:WaitForChild("PlayerGui"))
+local screenGui = create("ScreenGui", {Name="VoidwareAdmin", ResetOnSpawn=false, Enabled=true, ZIndexBehavior=Enum.ZIndexBehavior.Global}, player:WaitForChild("PlayerGui"))
 
 -- Fenster
 local main = create("Frame", {Size=UDim2.fromOffset(920,560), Position=UDim2.new(0.5,-460,0.5,-280), BackgroundColor3=C("bg"), BackgroundTransparency=0.06}, screenGui)
@@ -282,12 +282,11 @@ end
 ----------------------------------------------------------------
 -- Admin Gate: UI nur für Admins aktivieren
 ----------------------------------------------------------------
-local authed = false
-AdminAuth.OnClientEvent:Connect(function(state)
-	authed = state == true
-	screenGui.Enabled = authed
-	notify(authed and "Admin freigeschaltet" or "Keine Admin-Rechte")
-end)
+local authed = true
+screenGui.Enabled = true
+-- AdminAuth deaktiviert (später wieder aktivieren)
+-- AdminAuth.OnClientEvent:Connect(function(state)
+-- end)
 
 ----------------------------------------------------------------
 -- Fly (lokal, aber nur nutzbar wenn authed)
@@ -349,10 +348,10 @@ local function openLocal()
 	slider("Fly Speed", 10, 300, function() return flySpeed end, function(v) flySpeed=v end, 88)
 	local hum = (player.Character or player.CharacterAdded:Wait()):WaitForChild("Humanoid")
 	slider("WalkSpeed", 8, 200, function() return hum.WalkSpeed end, function(v)
-		AdminAction:InvokeServer("set-stats", {userName=player.Name, ws=v, jp=hum.JumpPower})
+		hum.WalkSpeed = v
 	end, 140)
 	slider("JumpPower", 10, 200, function() return hum.JumpPower end, function(v)
-		AdminAction:InvokeServer("set-stats", {userName=player.Name, ws=hum.WalkSpeed, jp=v})
+		hum.JumpPower = v
 	end, 200)
 	button(flying and "Fly AUS" or "Fly AN", UDim2.new(0,12,0,250), UDim2.new(0,140,0,36), function(b)
 		setFly(not flying); b.Text = flying and "Fly AUS" or "Fly AN"
@@ -365,29 +364,14 @@ end
 local function openPlayers()
 	clearContent()
 	section("🧍 Players & Teleport", 16)
-	local scroll = create("ScrollingFrame", {Size=UDim2.new(1,-24,1,-110), Position=UDim2.new(0,12,0,58), CanvasSize=UDim2.new(0,0,0,0), ScrollBarThickness=6, BackgroundTransparency=1, Parent=content})
-	local y=0
-	local list = AdminGetPlayers:InvokeServer()
-	for _,item in ipairs(list) do
-		local row = create("Frame", {Size=UDim2.new(1,-10,0,40), Position=UDim2.new(0,5,0,y), BackgroundColor3=Color3.fromRGB(226,220,255), Parent=scroll})
-		create("UICorner", {CornerRadius=UDim.new(0,8)}, row)
-		local nameLbl = create("TextLabel", {Size=UDim2.new(0.6,0,1,0), Position=UDim2.new(0,10,0,0), BackgroundTransparency=1, Text=item.name, TextScaled=true, Font=Enum.Font.Gotham, TextColor3=C("text")}, row)
-		button("TP →", UDim2.new(1,-180,0,4), UDim2.new(0,80,0,32), function()
-			AdminAction:InvokeServer("tp-to", {toName=item.name})
-		end).Parent = row
-		button("Bring", UDim2.new(1,-90,0,4), UDim2.new(0,80,0,32), function()
-			AdminAction:InvokeServer("bring", {userName=item.name})
-		end).Parent = row
-		y = y + 44
-		scroll.CanvasSize = UDim2.new(0,0,0,y+8)
-	end
-	button("Refresh", UDim2.new(1,-132,0,16), UDim2.new(0,120,0,32), function() openPlayers() end)
+	label("Platzhalter – wird später eingebaut.", UDim2.new(0,12,0,60))
+end)
 end
 
 ----------------------------------------------------------------
 -- TAB: ESP (lokal sichtbar)
 ----------------------------------------------------------------
-local espEnabled=false
+local espEnabled=true
 local espMap={}
 local function setESPFor(plr, on)
 	if on then
@@ -495,11 +479,8 @@ end
 local function openServer()
 	clearContent()
 	section("🛡️ Server", 16)
-	local msgBox = create("TextBox", {Size=UDim2.new(0,360,0,34), Position=UDim2.new(0,12,0,60), PlaceholderText="Broadcast-Message", Text="", Font=Enum.Font.Gotham, TextSize=16, BackgroundColor3=Color3.fromRGB(225,220,255), TextColor3=Theme.Dark.text, Parent=content})
-	create("UICorner", {CornerRadius=UDim.new(0,8)}, msgBox)
-	button("Broadcast", UDim2.new(0,384,0,60), UDim2.new(0,140,0,34), function()
-		AdminAction:InvokeServer("broadcast", {text = msgBox.Text})
-	end)
+	label("Platzhalter – Serverfunktionen folgen später.", UDim2.new(0,12,0,60))
+end)
 	button("Rejoin", UDim2.new(0,12,0,108), UDim2.new(0,140,0,34), function() AdminAction:InvokeServer("rejoin") end)
 	button("Shutdown (Owner)", UDim2.new(0,164,0,108), UDim2.new(0,180,0,34), function() AdminAction:InvokeServer("shutdown") end)
 end
